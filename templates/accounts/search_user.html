@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <input type="text" name="user_id" placeholder="친구 아이디를 입력하세요">
+    <button type="submit">검색</button>
+</form>
+
+{% endblock content %}

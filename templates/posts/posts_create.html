@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>게시글 작성</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="id_title" class="form-label">제목</label>
+        {{ form.title }}
+    </div>
+    <div class="mb-3">
+        <label for="id_content" class="form-label">내용</label>
+        {{ form.content }}
+    </div>
+    <div class="mb-3">
+        <label for="id_location" class="form-label">위치</label>
+        {{ form.location }}
+    </div>
+    
+    <div class="mb-3">
+        <label class="form-label">별점</label>
+        <div id="star-rating" class="star-rating">
+            {% for i in "123" %}
+                <span class="star{% if i <= form.instance.rating|stringformat:"i" %} selected{% endif %}" data-value="{{ i }}">★</span>
+            {% endfor %}
+        </div>
+        <input type="hidden" id="id_rating" name="rating" value="{{ form.instance.rating }}">
+    </div>
+    
+
+
+
+    <!-- 사진 업로드 부분 -->
+
+    <div class="mb-3">
+        <label for="id_image_upload" class="form-label">사진 업로드</label>
+        <input type="file" id="id_image_upload" accept="image/*">
+        <div id="image-preview" style="margin-top: 10px;"></div>
+    </div>
+
+
+    <!-- 태그 선택 부분 
+    <div class="mb-3">
+        <label class="form-label">태그</label>
+        <div id="tag-container">
+            {% for tag in tags %}
+                <button type="button" class="tag-btn" data-value="{{ tag }}">{{ tag }}</button>
+            {% endfor %}
+        </div>
+        <input type="hidden" id="id_tags" name="tags" value="">
+    </div>-->
+
+    <button type="submit" class="btn btn-primary">출간하기</button>
+</form>
+
+<script>
+    const stars = document.querySelectorAll('#star-rating .star');
+    const ratingInput = document.getElementById('id_rating');
+
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            star.classList.toggle('selected', index < rating);
+        });
+    }
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', function() {
+            const selectedRating = index + 1;
+            // 선택한 별을 다시 클릭하면 해제
+            if (parseInt(ratingInput.value) === selectedRating) {
+                ratingInput.value = 0; // 해제
+                updateStars(0);
+            } else {
+                ratingInput.value = selectedRating;
+                updateStars(selectedRating);
+            }
+        });
+    });
+
+    // 페이지 로드 시 초기 별점 설정
+    updateStars(parseInt(ratingInput.value) || 0);
+
+
+    // 태그 선택 기능
+    const tagButtons = document.querySelectorAll('#tag-container .tag-btn');
+    const tagsInput = document.getElementById('id_tags');
+    let selectedTags = [];
+
+    function updateTags() {
+        tagsInput.value = selectedTags.join(',');
+    }
+
+    tagButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tagValue = this.getAttribute('data-value');
+            
+            if (selectedTags.includes(tagValue)) {
+                selectedTags = selectedTags.filter(tag => tag !== tagValue);
+                this.classList.remove('selected');
+            } else {
+                selectedTags.push(tagValue);
+                this.classList.add('selected');
+            }
+            updateTags();
+        });
+    });
+
+
+
+    // 사진 업로드 기능
+    const imageInput = document.getElementById('id_image_upload');
+    const contentTextarea = document.querySelector('#id_content');
+
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 파일을 읽어와서 <img> 태그로 변환하여 내용 칸에 삽입
+                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto;">`;
+                contentTextarea.value += `\n${imgTag}\n`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+
+<style>
+    .star {
+        font-size: 2rem;
+        cursor: pointer;
+        color: gray;
+        transition: color 0.2s ease-in-out;
+    }
+    .star.selected {
+        color: gold;
+    }
+    .star-rating {
+        display: flex;
+        gap: 5px;
+    }
+
+    .tag-btn {
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 15px;
+        background-color: #ccc;
+        cursor: pointer;
+        color: white;
+    }
+    .tag-btn.selected {
+        background-color: green;
+    }
+</style>
+
+
+{% endblock %}

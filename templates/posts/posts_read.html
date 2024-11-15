@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>게시글 목록</h2>
+<a href="{% url 'posts:post_create' %}" class="btn btn-primary">새 게시글 작성</a>
+<hr>
+{% for post in posts %}
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.content }}</p>
+    <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-warning">수정</a>
+    <a href="{% url 'posts:post_delete' post.pk %}" class="btn btn-danger">삭제</a>
+    <hr>
+{% endfor %}
+{% endblock %}

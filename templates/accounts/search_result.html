@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if user %}
+    <p>아이디: {{ user.username }}</p>
+    <form method="post" action="{% url 'accounts:send_friend_request' user.id %}">
+        {% csrf_token %}
+        <button type="submit">친구 요청 보내기</button>
+    </form>
+{% elif error %}
+    <p>{{ error }}</p>
+{% endif %}
+
+{% endblock content %}

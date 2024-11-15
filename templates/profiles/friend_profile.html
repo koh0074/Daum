@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="profile-header d-flex align-items-center">
+        <img src="{{ friend.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
+        <h2>
+            {% if friend.first_name %}
+                {{ friend.first_name }}
+            {% else %}
+                {{ friend.username }}
+            {% endif %}의 여행일기
+        </h2>
+        
+        <!-- 친구 추가/삭제 버튼 -->
+        {% if is_friend %}
+            <button id="friendButton" class="btn btn-danger ms-4">친구 삭제</button>
+        {% else %}
+            <button id="friendButton" class="btn btn-success ms-4">친구 추가</button>
+        {% endif %}
+    </div>
+
+    <!-- 친구 수 및 드롭다운 목록 -->
+    <div class="friends-dropdown mt-4 position-relative">
+        <button class="btn btn-outline-info">
+            친구 {{ friends_count }}명
+        </button>
+        <div class="friends-list shadow p-3 bg-light rounded">
+            {% if friends_list %}
+                <ul class="list-unstyled">
+                    {% for friend in friends_list %}
+                    <li>
+                        <a href="{% url 'profiles:friend_profile' friend.username %}">
+                            {% if friend.first_name %}
+                                {{ friend.first_name }} (@{{ friend.username }})
+                            {% else %}
+                                {{ friend.username }}
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>아직 친구가 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 친구의 게시글 목록 -->
+    <div class="post-list mt-4">
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post-card mb-4">
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content|truncatewords:20 }}</p>
+                    <p>위치: {{ post.location }}</p>
+                    <!-- 작성 날짜 표시 -->
+                    <p>작성 날짜: {{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+
+                    <!-- 별점 표시 부분 수정 -->
+                    <p>별점: 
+                        {% for i in "123" %}
+                            <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>아직 작성된 게시글이 없습니다.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('friendButton').addEventListener('click', function() {
+    const isFriend = "{{ is_friend }}" === "True";
+    const action = isFriend ? '친구를 삭제하시겠습니까?' : '친구 신청을 보내시겠습니까?';
+    const url = isFriend 
+        ? "{% url 'profiles:delete_friend' friend.username %}"
+        : "{% url 'profiles:send_request' friend.username %}";
+
+    if (confirm(action)) {
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'deleted') {
+                alert('친구가 삭제되었습니다.');
+                location.reload();
+            } else if (data.status === 'requested') {
+                alert('친구 요청이 전송되었습니다.');
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('오류가 발생했습니다. 다시 시도해주세요.');
+        });
+    }
+});
+</script>
+{% endblock content %}
+
+<style>
+    .profile-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+    .friends-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .friends-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 200px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .friends-dropdown:hover .friends-list {
+        display: block;
+    }
+    .post-card {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+</style>

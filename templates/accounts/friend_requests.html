@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>받은 친구 요청</h2>
+{% if requests %}
+    <ul>
+        {% for request in requests %}
+        <li>
+            <p>{{ request.from_user.username }} 님의 친구 요청</p>
+            <button class="btn btn-success" onclick="handleRequest({{ request.id }}, 'accept')">수락</button>
+            <button class="btn btn-danger" onclick="handleRequest({{ request.id }}, 'decline')">거절</button>
+        </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>받은 친구 요청이 없습니다.</p>
+{% endif %}
+{% endblock %}
+
+<script>
+    function handleRequest(requestId, action) {
+        const url = action === 'accept' 
+            ? "{% url 'accounts:accept_friend_request' 0 %}".replace('0', requestId)
+            : "{% url 'accounts:decline_friend_request' 0 %}".replace('0', requestId);
+    
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'accepted' || data.status === 'declined') {
+                location.reload(); // 페이지 새로고침으로 목록 갱신
+            } else {
+                alert('처리 중 오류가 발생했습니다.');
+            }
+        });
+    }
+    </script>
+    

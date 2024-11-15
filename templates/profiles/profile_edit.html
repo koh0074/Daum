@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>프로필 수정</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- 닉네임 수정 -->
+    <label for="first_name">닉네임:</label>
+    <input type="text" name="first_name" id="first_name" value="{{ user.first_name }}" required>
+    
+    <!-- 프로필 사진 수정 -->
+    <label for="profile_image">프로필 사진:</label>
+    <input type="file" name="profile_image" id="profile_image">
+    
+    <button type="submit" class="btn btn-primary">수정 완료</button>
+</form>
+{% endblock %}

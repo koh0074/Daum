@@ -16,8 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('apps.posts.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('profiles/', include('apps.profiles.urls')),
+    path('places/', include('apps.places.urls')),  # 이 부분이 올바르게 설정되어야 합니다.
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

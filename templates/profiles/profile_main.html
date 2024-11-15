@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- 프로필 정보 -->
+    <div class="profile-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+            <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
+            <h2 class="mb-0">{{ nickname }}의 여행일기</h2>
+        </div>
+    </div>
+
+    <!-- 편집 드롭다운 버튼 -->
+    <div class="edit-dropdown position-relative mt-4">
+        <button class="btn btn-outline-secondary">프로필 편집</button>
+        
+        <!-- 호버 시 나타나는 편집 폼 -->
+        <div class="edit-dropdown-form shadow p-4 bg-light rounded">
+            <!-- 닉네임 수정 폼 -->
+            <form method="post" action="{% url 'profiles:edit_nickname' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="nickname" class="form-label">새 닉네임</label>
+                    <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새로운 닉네임 입력" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mb-3">닉네임 저장</button>
+            </form>
+
+            <!-- 프로필 사진 수정 폼 -->
+            <form method="post" action="{% url 'profiles:edit_profile_image' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="profile_image" class="form-label">프로필 사진 변경</label>
+                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">사진 저장</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <!-- 친구 수 및 드롭다운 -->
+    <div class="friends-dropdown mt-4 position-relative">
+        <button class="btn btn-outline-info">
+            친구 {{ friends_count }}명
+        </button>
+        <div class="friends-list shadow p-3 bg-light rounded">
+            {% if friends %}
+                <ul class="list-unstyled">
+                    {% for friend in friends %}
+                    <li class="mb-2">
+                        <a href="{% url 'profiles:friend_profile' friend.username %}" class="text-decoration-none">
+                            {% if friend.first_name %}
+                                {{ friend.first_name }} (@{{ friend.username }})
+                            {% else %}
+                                {{ friend.username }}
+                            {% endif %}
+                        </a>
+                    </li>
+                    
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>아직 친구가 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    
+
+    <div class="post-list mt-4">
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post-card mb-4">
+                    <h3>{{ post.title }}</h3>
+                    <p>작성자: 
+                        {% if post.author.first_name %}
+                            {{ post.author.first_name }}
+                        {% else %}
+                            {{ post.author.username }}
+                        {% endif %}
+                    </p>
+                    <p>{{ post.content|truncatewords:20 }}</p>
+                    <p>위치: {{ post.location }}</p>
+
+                    <!-- 작성 날짜 표시 -->
+                    <p>작성 날짜: {{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+
+                    <!-- 별점 표시 부분 수정 -->
+                    <p>별점: 
+                        {% for i in "123" %}
+                            <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                        {% endfor %}
+                    </p>
+    
+                    <!-- 게시글 수정 및 삭제 버튼 (작성자 본인만 보이게) -->
+                    {% if post.author == user %}
+                        <div class="mt-3">
+                            <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary">수정</a>
+                            <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>아직 작성된 게시글이 없습니다.</p>
+        {% endif %}
+    </div>
+    
+    
+
+    <div class="mt-4">
+        <a href="{% url 'accounts:logout' %}" class="btn btn-danger">로그아웃</a>
+    </div>
+</div>
+{% endblock content %}
+
+<style>
+    /* 스타일 설정 */
+    .profile-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .edit-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .edit-dropdown-form {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 350px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
+
+    /* 드롭다운이 호버 시 나타남 */
+    .edit-dropdown:hover .edit-dropdown-form {
+        display: block;
+    }
+
+    .edit-dropdown-form form {
+        margin-bottom: 20px;
+    }
+
+    .btn-outline-secondary {
+        cursor: pointer;
+    }
+    .friends-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+    .friends-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 200px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .friends-dropdown:hover .friends-list {
+        display: block;
+    }
+    .text-warning {
+        color: gold;
+    }
+    .text-muted {
+        color: gray;
+    }
+</style>

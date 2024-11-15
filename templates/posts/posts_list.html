@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>게시글 목록</h2>
+    <hr>
+
+    <!-- 정렬 기준 선택 드롭다운 메뉴 -->
+    <div class="mb-4">
+        <form method="get" class="d-inline-block">
+            <label for="sort" class="form-label">정렬 기준:</label>
+            <select name="sort" id="sort" class="form-select" onchange="this.form.submit()">
+                <option value="latest" {% if sort == 'latest' %}selected{% endif %}>최신순</option>
+                <option value="rating" {% if sort == 'rating' %}selected{% endif %}>별점 높은 순</option>
+                <option value="likes" {% if sort == 'likes' %}selected{% endif %}>좋아요 순</option>
+            </select>
+        </form>
+    </div>
+    {% if posts %}
+        {% for post in posts %}
+            <div class="post-item">
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.content|truncatewords:30 }}</p>
+                <p><small>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</small></p>
+                
+                <!-- 이미지가 있는 경우 출력 -->
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+                {% endif %}
+                <p>별점: 
+                    {% for i in "123" %}
+                        <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                    {% endfor %}
+                </p>
+                <hr>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>게시글이 없습니다.</p>
+    {% endif %}
+</div>
+{% endblock %}

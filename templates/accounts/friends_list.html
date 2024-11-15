@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% for friend in friends %}
+    <p>{{ friend.to_user.username }}</p>
+{% empty %}
+    <p>친구가 없습니다.</p>
+{% endfor %}
+
+{% endblock content %}
