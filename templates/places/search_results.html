@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}검색 결과{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>검색 결과: "{{ query }}"</h2>
+    <hr>
+
+    <!-- 축제 검색 결과 -->
+    {% if festivals %}
+        <h3>📅 축제</h3>
+        <div class="row mt-4">
+            {% for festival in festivals %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    {% if festival.image %}
+                        <img src="{{ festival.image.url }}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5>{{ festival.name }}</h5>
+                        <p>{{ festival.description|truncatewords:20 }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    {% endif %}
+
+    <!-- 여행지 검색 결과 -->
+    {% if destinations %}
+        <h3>🗺️ 여행지</h3>
+        <div class="row mt-4">
+            {% for destination in destinations %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    {% if destination.image %}
+                        <img src="{{ destination.image.url }}" class="card-img-top" alt="{{ destination.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5>{{ destination.name }}</h5>
+                        <p>{{ destination.description|truncatewords:20 }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    {% endif %}
+
+    <!-- 남의 여행일기 검색 결과 -->
+    {% if others_posts %}
+        <h3>📖 남의 여행일기</h3>
+        {% for post in others_posts %}
+        <div class="post-item">
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.content|truncatewords:30 }}</p>
+            <p>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</p>
+            <hr>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- 친구의 여행일기 검색 결과 -->
+    {% if friends_posts %}
+        <h3>👥 친구의 여행일기</h3>
+        {% for post in friends_posts %}
+        <div class="post-item">
+            <h4>{{ post.title }}</h4>
+            <p>{{ post.content|truncatewords:30 }}</p>
+            <p>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</p>
+            <hr>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

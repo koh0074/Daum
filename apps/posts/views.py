@@ -1,31 +1,70 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post
+from .models import Post, Comment, Like, Bookmark
+from apps.accounts.models import FriendRequest
 from .forms import PostForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from datetime import date
 
 def main(request):
     """메인 페이지"""
     return render(request, 'main.html')
 
+def get_friends(user):
+    """현재 사용자의 친구 목록을 가져오는 함수"""
+    accepted_requests = FriendRequest.objects.filter(from_user=user, is_accepted=True)
+    accepted_requests |= FriendRequest.objects.filter(to_user=user, is_accepted=True)
+    
+    # 친구 목록을 추출
+    friends = set()
+    for request in accepted_requests:
+        if request.from_user == user:
+            friends.add(request.to_user)
+        else:
+            friends.add(request.from_user)
+    return friends
+
+@login_required
 def post_list(request):
-    # GET 요청에서 'sort' 파라미터를 가져옵니다 (기본값은 'latest')
+    """일반 게시글 목록: 친구가 아닌 사용자의 게시글만 표시하고, 본인이 작성한 게시글은 제외"""
     sort = request.GET.get('sort', 'latest')
-    
-    # 정렬 기준에 따라 쿼리셋을 정렬합니다.
+    friends = get_friends(request.user)
+
+    # 친구가 아닌 사용자의 게시글만 가져오고, 본인이 작성한 게시글 제외
+    posts = Post.objects.exclude(author__in=friends).exclude(author=request.user)  # 이 부분 수정
+
+    user_bookmarks = Bookmark.objects.filter(user=request.user).values_list('post_id', flat=True)
+
+    # 정렬 옵션 처리
     if sort == 'latest':
-        posts = Post.objects.all().order_by('-created_at')
+        posts = posts.order_by('-created_at')
     elif sort == 'rating':
-        posts = Post.objects.all().order_by('-rating')
+        posts = posts.order_by('-rating')
     elif sort == 'likes':
-        posts = Post.objects.all().order_by('-likes')
-    else:
-        posts = Post.objects.all().order_by('-created_at')  # 기본값: 최신순
-    
-    context = {
+        posts = sorted(posts, key=lambda p: p.like_set.count(), reverse=True)
+
+    return render(request, 'posts/posts_list.html', {
         'posts': posts,
+        'user_bookmarks': user_bookmarks,
         'sort': sort
-    }
-    return render(request, 'posts/posts_list.html', context)
+    })
+
+
+@login_required
+def friends_posts(request):
+    """친구의 게시글만 표시"""
+    friends = get_friends(request.user)
+    posts = Post.objects.filter(author__in=friends)
+
+    # 사용자가 찜한 게시글 목록 가져오기
+    user_bookmarks = Bookmark.objects.filter(user=request.user).values_list('post_id', flat=True)
+
+    return render(request, 'posts/friends_posts.html', {
+        'posts': posts,
+        'user_bookmarks': user_bookmarks,
+        'title': "친구의 여행일기"
+    })
 
 @login_required
 def post_create(request):
@@ -82,3 +121,53 @@ def post_delete(request, pk):
         return redirect('posts:post_list')
     
     return render(request, 'posts/posts_delete.html', {'post': post})
+
+def post_detail(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comments.all()
+    is_liked = False
+    is_bookmarked = False
+    if request.user.is_authenticated:
+        is_liked = Like.objects.filter(user=request.user, post=post).exists()
+        is_bookmarked = Bookmark.objects.filter(user=request.user, post=post).exists()
+
+    context = {
+        'post': post,
+        'comments': comments,
+        'is_liked': is_liked,
+        'is_bookmarked': is_bookmarked,
+    }
+    return render(request, 'posts/post_detail.html', context)
+
+@login_required
+@require_POST
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    content = request.POST.get('content')
+    if content:
+        Comment.objects.create(post=post, author=request.user, content=content)
+    return redirect('posts:post_detail', post_id=post_id)
+
+@login_required
+@require_POST
+def toggle_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    like, created = Like.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        like.delete()
+        is_liked = False
+    else:
+        is_liked = True
+    return JsonResponse({'is_liked': is_liked})
+
+@login_required
+@require_POST
+def toggle_bookmark(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    bookmark, created = Bookmark.objects.get_or_create(user=request.user, post=post)
+    if not created:
+        bookmark.delete()
+        is_bookmarked = False
+    else:
+        is_bookmarked = True
+    return JsonResponse({'is_bookmarked': is_bookmarked})

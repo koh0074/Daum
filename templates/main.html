@@ -4,5 +4,65 @@
 {% block title %}🧳여행 다움🧳{% endblock %}
 
 {% block content %}
+<div class="container mt-5">
+    <h2>🧳 여행 다움 메인 페이지</h2>
+    <hr>
 
+    <!-- 검색창 -->
+    <div class="mb-4">
+        <form method="get" action="{% url 'places:search_results' %}">
+            <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
+            <button type="submit" class="btn btn-primary mt-2">검색</button>
+        </form>
+    </div>
+
+    <!-- 탭 버튼들 -->
+    <ul class="nav nav-tabs" id="mainTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-tab="festivals" href="#">지역 축제 정보</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-tab="travel_destinations" href="#">국내 여행지 정보</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-tab="others_posts" href="#">남의 여행일지</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-tab="friends_posts" href="#">친구의 여행일지</a>
+        </li>
+    </ul>
+
+    <!-- 탭 콘텐츠를 표시할 영역 -->
+    <div id="tabContent" class="mt-4"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('#mainTabs .nav-link');
+    const tabContent = document.getElementById('tabContent');
+
+    function loadTabContent(tab) {
+        fetch(`/places/load_tab/${tab}/`)
+            .then(response => response.text())
+            .then(data => {
+                tabContent.innerHTML = data;
+            })
+            .catch(error => console.error('Error loading tab content:', error));
+    }
+
+    // 처음 로딩 시 첫 번째 탭 콘텐츠 로드
+    loadTabContent('festivals');
+
+    // 탭 클릭 시 AJAX로 콘텐츠 로드
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(event) {
+            event.preventDefault();
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const tabName = this.getAttribute('data-tab');
+            loadTabContent(tabName);
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -15,24 +15,36 @@
             </select>
         </form>
     </div>
+
     {% if posts %}
         {% for post in posts %}
-            <div class="post-item">
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.content|truncatewords:30 }}</p>
-                <p><small>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</small></p>
-                
-                <!-- 이미지가 있는 경우 출력 -->
-                {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
-                {% endif %}
-                <p>별점: 
-                    {% for i in "123" %}
-                        <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                    {% endfor %}
-                </p>
-                <hr>
-            </div>
+        <div class="post-item">
+            <!-- 게시글 제목을 클릭하면 상세 페이지로 이동 -->
+            <h3>
+                <a href="{% url 'posts:post_detail' post.id %}">{{ post.title }}</a>
+            </h3>
+            <p>{{ post.content|truncatewords:30 }}</p>
+            <p><small>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</small></p>
+            
+            <!-- 이미지가 있는 경우 출력 -->
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+            {% endif %}
+
+            <!-- 찜 여부 표시 -->
+            {% if post.id in user_bookmarks %}
+                <p class="text-success">★ 내가 찜한 게시글</p>
+            {% else %}
+                <p class="text-muted">☆ 찜하지 않음</p>
+            {% endif %}
+            
+            <p>별점: 
+                {% for i in "123" %}
+                    <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                {% endfor %}
+            </p>
+            <hr>
+        </div>
         {% endfor %}
     {% else %}
         <p>게시글이 없습니다.</p>

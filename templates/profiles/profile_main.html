@@ -7,7 +7,7 @@
     <div class="profile-header d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center">
             <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
-            <h2 class="mb-0">{{ nickname }}의 여행일기</h2>
+            <h2 class="mb-0">{{ user.nickname }}의 여행일기</h2>
         </div>
     </div>
 
@@ -68,7 +68,67 @@
         </div>
     </div>
 
-    
+        <!-- 찜한 항목 드롭다운 -->
+    <div class="wishlist-dropdown mt-4 position-relative">
+        <button class="btn btn-outline-success">
+            찜한 항목 {{ festival_bookmarks.count|add:travel_bookmarks.count|add:post_bookmarks.count }}개
+        </button>
+        <div class="wishlist-list shadow p-4 bg-light rounded">
+            
+            <!-- 찜한 축제 목록 -->
+            <h5>🎉 찜한 축제</h5>
+            {% if festival_bookmarks %}
+                <ul class="list-unstyled mb-4">
+                    {% for bookmark in festival_bookmarks %}
+                        <li>
+                            <strong>{{ bookmark.festival.name }}</strong><br>
+                            위치: {{ bookmark.festival.location }}<br>
+                            기간: {{ bookmark.festival.start_date }} ~ {{ bookmark.festival.end_date }}
+                        </li>
+                        <hr>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>찜한 축제가 없습니다.</p>
+            {% endif %}
+            
+            <!-- 찜한 여행지 목록 -->
+            <h5>🗺️ 찜한 여행지</h5>
+            {% if travel_bookmarks %}
+                <ul class="list-unstyled mb-4">
+                    {% for bookmark in travel_bookmarks %}
+                        <li>
+                            <strong>{{ bookmark.destination.name }}</strong><br>
+                            위치: {{ bookmark.destination.location }}<br>
+                            설명: {{ bookmark.destination.description|truncatewords:10 }}
+                        </li>
+                        <hr>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>찜한 여행지가 없습니다.</p>
+            {% endif %}
+            
+            <!-- 찜한 게시글 목록 -->
+            <h5>📝 찜한 게시글</h5>
+            {% if post_bookmarks %}
+                <ul class="list-unstyled">
+                    {% for bookmark in post_bookmarks %}
+                        <li>
+                            <strong>{{ bookmark.post.title }}</strong><br>
+                            작성자: {{ bookmark.post.author.username }}<br>
+                            작성 날짜: {{ bookmark.post.created_at|date:"Y년 m월 d일 H:i" }}
+                        </li>
+                        <hr>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>찜한 게시글이 없습니다.</p>
+            {% endif %}
+        </div>
+    </div>
+
+
 
     <div class="post-list mt-4">
         {% if posts %}
@@ -182,5 +242,39 @@
     }
     .text-muted {
         color: gray;
+    }
+    .wishlist-dropdown {
+        position: relative;
+        display: inline-block;
+        margin-top: 20px;
+    }
+    .wishlist-list {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 350px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
+    .wishlist-dropdown:hover .wishlist-list {
+        display: block;
+    }
+    .wishlist-list h5 {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .wishlist-list ul {
+        padding-left: 0;
+    }
+    .wishlist-list li {
+        margin-bottom: 10px;
+    }
+    hr {
+        border: 0.5px solid #ddd;
     }
 </style>

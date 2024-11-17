@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ post.title }}</h2>
+    <p>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</p>
+    <!-- 이미지가 있는 경우에만 출력 -->
+    {% if post.image and post.image.url %}
+        <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
+    {% endif %}
+    <p>{{ post.content }}</p>
+    <p>별점: {{ post.rating }}</p>
+
+    <!-- 좋아요 버튼 -->
+    <button class="btn like-btn" data-url="{% url 'posts:toggle_like' post.id %}">
+        {% if is_liked %}
+            좋아요 취소
+        {% else %}
+            좋아요
+        {% endif %}
+    </button>
+
+    <!-- 찜 버튼 -->
+    <button class="btn bookmark-btn" data-url="{% url 'posts:toggle_bookmark' post.id %}">
+        {% if is_bookmarked %}
+            찜 취소
+        {% else %}
+            찜하기
+        {% endif %}
+    </button>
+
+
+    <hr>
+    <h3>댓글</h3>
+    {% for comment in comments %}
+        <p>{{ comment.author.username }}: {{ comment.content }} ({{ comment.created_at|date:"Y-m-d H:i" }})</p>
+    {% endfor %}
+
+    <form method="post" action="{% url 'posts:add_comment' post.id %}">
+        {% csrf_token %}
+        <textarea name="content" rows="3" class="form-control" placeholder="댓글을 입력하세요"></textarea>
+        <button type="submit" class="btn btn-primary mt-3">댓글 작성</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const likeBtn = document.querySelector('.like-btn');
+    likeBtn.addEventListener('click', function() {
+        fetch(this.getAttribute('data-url'), { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'} })
+        .then(response => response.json())
+        .then(data => this.textContent = data.is_liked ? '좋아요 취소' : '좋아요');
+    });
+
+    const bookmarkBtn = document.querySelector('.bookmark-btn');
+    bookmarkBtn.addEventListener('click', function() {
+        fetch(this.getAttribute('data-url'), { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'} })
+        .then(response => response.json())
+        .then(data => this.textContent = data.is_bookmarked ? '찜 취소' : '찜하기');
+    });
+});
+</script>
+{% endblock %}

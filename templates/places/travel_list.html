@@ -3,21 +3,28 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>국내 여행지 정보 <span class="text-muted">총 {{ destination_count }}건</span></h2>
+    <h2>여행지 정보 <span class="text-muted">총 {{ destination_count }}건</span></h2>
+    
     <div class="row mt-4">
         {% if destinations %}
             {% for destination in destinations %}
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
-                    {% if destination.image_url %}
-                    <img src="{{ destination.image_url }}" class="card-img-top" alt="{{ destination.name }}">
-                    {% else %}
-                    <img src="{% static 'images/default_travel.jpg' %}" class="card-img-top" alt="{{ destination.name }}">
+                    {% if destination.image %}
+                    <img src="{{ destination.image.url }}" class="card-img-top custom-img" alt="{{ destination.name }}">
                     {% endif %}
+                    
                     <div class="card-body">
                         <h5 class="card-title">{{ destination.name }}</h5>
                         <p>{{ destination.description|truncatewords:20 }}</p>
-                        <p><strong>위치:</strong> {{ destination.location }}</p>
+                        <p><strong>장소:</strong> {{ destination.location }}</p>
+                        
+                        <!-- 찜 버튼 -->
+                        <button class="btn travel-bookmark-btn {% if destination.is_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+                                data-destination-id="{{ destination.id }}" 
+                                data-url="{% url 'places:toggle_destination_bookmark' destination.id %}">
+                            {% if destination.is_bookmarked %}찜 취소{% else %}찜하기{% endif %}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -27,4 +34,38 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('.travel-bookmark-btn');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_bookmarked) {
+                    this.textContent = '찜 취소';
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-primary');
+                } else {
+                    this.textContent = '찜하기';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-outline-primary');
+                }
+            })
+            .catch(error => console.error('There was an error:', error));
+        });
+    });
+});
+</script>
 {% endblock %}

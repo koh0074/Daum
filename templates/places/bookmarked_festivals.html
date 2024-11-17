@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ title }}</h2>
+    <hr>
+
+    <!-- 곧 시작하는 축제 -->
+    {% if upcoming_festivals %}
+        <h3 class="text-warning">찜한 축제가 곧 시작해요!</h3>
+        <div class="row mt-4">
+            {% for festival in upcoming_festivals %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    {% if festival.image %}
+                        <img src="{{ festival.image.url }}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/default_festival.jpg' %}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ festival.name }}</h5>
+                        <p>{{ festival.description|truncatewords:20 }}</p>
+                        <p><strong>장소:</strong> {{ festival.location }}</p>
+                        <p><strong>기간:</strong> {{ festival.start_date }} ~ {{ festival.end_date }}</p>
+                        
+                        <p class="text-info"><strong>디데이:</strong> {{ festival.days_left }}</p>
+
+                        <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
+                            찜 취소
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <hr>
+    {% endif %}
+
+    <!-- 전체 찜한 축제 -->
+    <h3>전체</h3>
+    {% if all_festivals %}
+        <div class="row mt-4">
+            {% for festival in all_festivals %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    {% if festival.image %}
+                        <img src="{{ festival.image.url }}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/default_festival.jpg' %}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ festival.name }}</h5>
+                        <p>{{ festival.description|truncatewords:20 }}</p>
+                        <p><strong>장소:</strong> {{ festival.location }}</p>
+                        <p><strong>기간:</strong> {{ festival.start_date }} ~ {{ festival.end_date }}</p>
+                        
+                        <p class="text-info"><strong>디데이:</strong> {{ festival.days_left }}</p>
+
+                        <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
+                            찜 취소
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>현재 찜한 축제가 없습니다.</p>
+    {% endif %}
+</div>
+
+<script>
+function toggleBookmark(button) {
+    const url = button.getAttribute('data-url');
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.is_bookmarked) {
+            button.closest('.col-md-4').remove();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

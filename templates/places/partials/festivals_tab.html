@@ -1,0 +1,10 @@
+{% for festival in festivals %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>{{ festival.name }}</h5>
+        <p>{{ festival.description|truncatewords:20 }}</p>
+        <p><strong>장소:</strong> {{ festival.location }}</p>
+        <p><strong>기간:</strong> {{ festival.start_date }} ~ {{ festival.end_date }}</p>
+    </div>
+</div>
+{% endfor %}

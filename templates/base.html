@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">  
+    <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -22,7 +23,7 @@
                     
                     <!-- 남의 여행일기 페이지로 이동 -->
                     <a href="{% url 'posts:post_list' %}">남의 여행일기</a><br>
-                    <p>친구의 여행일기</p>
+                    <a href="{% url 'posts:friends_posts' %}">친구의 여행일기</a>
                 </div>
             </div>
 
@@ -42,7 +43,7 @@
         </div>
 
 
-            <h4>찜한여행</h4>
+            <a href="{% url 'places:bookmarked_festivals' %}">찜한 여행</a>
             <a href="{% url 'posts:main' %}"><h4>여행 다움</h4></a>
             <a href="{% url 'posts:post_create' %}"><span class="menu-item">연필</span></a>
             <!-- 친구 요청 알림 드롭다운 -->

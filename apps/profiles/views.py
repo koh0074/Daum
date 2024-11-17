@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as auth_logout
-from apps.posts.models import Post
+from apps.posts.models import Post, Bookmark
 from apps.profiles.models import Profile
+from apps.places.models import Festival, TravelDestination, FestivalBookmark, TravelBookmark
 from apps.accounts.models import FriendRequest
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
@@ -23,12 +24,20 @@ def profile(request):
     friends_ids = set(friends_ids_from).union(set(friends_ids_to))
     friends = User.objects.filter(id__in=friends_ids)
 
+    # 사용자가 찜한 축제와 여행지 가져오기
+    festival_bookmarks = FestivalBookmark.objects.filter(user=user)
+    travel_bookmarks = TravelBookmark.objects.filter(user=user)
+    post_bookmarks = Bookmark.objects.filter(user=user)
+
     return render(request, 'profiles/profile_main.html', {
         'user': user,
         'posts': posts,
         'friends': friends,
         'friends_count': len(friends),
-        'nickname': user.first_name if user.first_name else user.username
+        'nickname': user.first_name if user.first_name else user.username,
+        'festival_bookmarks': festival_bookmarks,
+        'travel_bookmarks': travel_bookmarks,
+        'post_bookmarks': post_bookmarks,
     })
 
 
