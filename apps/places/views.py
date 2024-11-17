@@ -39,7 +39,7 @@ def travel_destination_list(request):
 @require_POST
 def toggle_bookmark(request, festival_id):
     festival = get_object_or_404(Festival, id=festival_id)
-    bookmark, created = Bookmark.objects.get_or_create(user=request.user, festival=festival)
+    bookmark, created = FestivalBookmark.objects.get_or_create(user=request.user, festival=festival)
     
     if not created:
         bookmark.delete()
@@ -66,7 +66,7 @@ def toggle_destination_bookmark(request, destination_id):
 @login_required
 def bookmarked_festivals(request):
     """사용자가 찜한 축제만 표시"""
-    bookmarks = Bookmark.objects.filter(user=request.user)
+    bookmarks = FestivalBookmark.objects.filter(user=request.user)
     festivals = [bookmark.festival for bookmark in bookmarks]
 
     # 남은 일수 계산
