@@ -1,32 +1,57 @@
+/* 기본 스타일 설정 */
 body {
+    background-color: #F9F8EB; /* 전체 배경색을 베이지 톤으로 설정 */
     color: black;
-    background-size: cover;
-    background-position: center;
-    background-color: beige;
+    margin: 0;
+    font-family: 'Noto Sans', 'Roboto', sans-serif;
     height: 100vh;
+    overflow-x: hidden;
 }
 
-/* 메뉴 바 스타일 */
+/* 헤더와 메뉴 바 스타일 */
 .menu-bar {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 20px; /* 항목 간 간격 조정 */
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+    padding: 15px 30px;
+    background-color: #E2F5D0;
+    border-bottom: 2px solid #508344;
 }
 
-.menu-bar h4,
-.menu-item,
-.dropdown-button {
+.menu-bar .menu-left {
+    display: flex;
+    align-items: center;
+    gap: 30px; /* 항목 간 간격 조정 */
+}
+
+.menu-bar h4, .menu-item, .dropdown-button {
     margin: 0;
     cursor: pointer;
-    position: relative;
+    color: #508344;
+    font-weight: bold;
+    font-size: 18px;
 }
 
-.menu-bar h4:hover,
-.menu-item:hover,
-.dropdown-button:hover {
-    color: #007bff; /* 호버 시 색상 변경 */
+.menu-bar h4:hover, .menu-item:hover {
+    color: #3A6B2F; /* 호버 시 색상 변경 */
+}
+
+/* 아이콘 스타일 */
+.menu-bar .icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.menu-bar .icons img {
+    width: 32px;
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.menu-bar .icons img:hover {
+    transform: scale(1.1);
 }
 
 /* 드롭다운 스타일 */
@@ -39,26 +64,98 @@ body {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #f9f9f9;
+    background-color: #F9F9F9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 10px;
+    min-width: 220px;
     z-index: 1000;
-    min-width: 200px;
 }
 
-.dropdown-content p {
-    margin: 5px 0;
-    padding: 5px;
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #508344;
+    font-size: 16px;
+}
+
+.dropdown-content a:hover {
+    background-color: #E2F5D0;
+    color: #3A6B2F;
+}
+
+/* 검색창 스타일 */
+.search-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.search-container input {
+    width: 350px;
+    padding: 10px 15px;
+    border: 2px solid #759C6B;
+    border-radius: 25px;
+    outline: none;
+}
+
+.search-container img {
+    margin-left: -40px;
     cursor: pointer;
 }
 
-.dropdown-content p:hover {
-    background-color: #e6e6e6;
+/* 버튼 스타일 */
+button {
+    background-color: #508344;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-/* 드롭다운 메뉴 호버 시 표시 */
-.dropdown:hover .dropdown-content {
+button:hover {
+    background-color: #3A6B2F;
+}
+
+/* 푸터 스타일 */
+.footer {
+    text-align: right;
+    padding: 20px;
+    font-size: 14px;
+    color: #AAA;
+}
+
+/* 알림 드롭다운 */
+.friend-requests {
+    display: none;
+    background-color: #F9F9F9;
+    border-radius: 8px;
+    padding: 10px;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.friend-requests div {
+    padding: 10px;
+    border-bottom: 1px solid #E6E6E6;
+}
+
+.friend-requests div:last-child {
+    border-bottom: none;
+}
+
+/* 드롭다운 알림 표시 */
+.menu-icon:hover + .friend-requests {
     display: block;
 }
 
