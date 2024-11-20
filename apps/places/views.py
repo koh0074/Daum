@@ -109,21 +109,36 @@ def get_friends(user):
             friends.add(request.from_user)
     return friends
 
+from django.db.models import Q  # Q 객체를 사용해 복잡한 조건 추가
+
+from django.db.models import Q  # 복잡한 쿼리 조건을 처리하기 위한 Q 객체
+
 def search_results(request):
-    query = request.GET.get('q', '')
+    # 'q'에서 'query'로 변경 (URL과 템플릿의 입력 필드 확인)
+    query = request.GET.get('query', '').strip()  # 검색어 가져오기
     friends = get_friends(request.user) if request.user.is_authenticated else []
 
-    # 검색어가 포함된 축제, 여행지, 게시글을 검색합니다.
-    festivals = Festival.objects.filter(name__icontains=query) | Festival.objects.filter(description__icontains=query)
-    destinations = TravelDestination.objects.filter(name__icontains=query) | TravelDestination.objects.filter(description__icontains=query)
-    
-    if request.user.is_authenticated:
-        others_posts = Post.objects.filter(content__icontains=query).exclude(author__in=friends).exclude(author=request.user)
-        friends_posts = Post.objects.filter(content__icontains=query, author__in=friends)
-    else:
-        others_posts = Post.objects.filter(content__icontains=query)
-        friends_posts = []
+    # 디버깅: 검색어 확인
+    print(f"검색어: {query}")
 
+    # 검색 로직: 제목(title)과 내용(content)을 검색합니다.
+    festivals = Festival.objects.filter(
+        Q(name__icontains=query) | Q(description__icontains=query)
+    )
+    destinations = TravelDestination.objects.filter(
+        Q(name__icontains=query) | Q(description__icontains=query)
+    )
+    others_posts = Post.objects.filter(
+        Q(title__icontains=query) | Q(content__icontains=query)
+    ).exclude(author__in=friends).exclude(author=request.user) if request.user.is_authenticated else Post.objects.filter(
+        Q(title__icontains=query) | Q(content__icontains=query)
+    )
+    friends_posts = Post.objects.filter(
+        Q(title__icontains=query) | Q(content__icontains=query),
+        author__in=friends
+    ) if request.user.is_authenticated else []
+
+    # 검색 결과를 템플릿에 전달
     context = {
         'query': query,
         'festivals': festivals,
@@ -133,6 +148,8 @@ def search_results(request):
         'title': "검색 결과"
     }
     return render(request, 'places/search_results.html', context)
+
+
 
 def load_tab(request, tab_name):
     """AJAX를 통해 탭 콘텐츠를 동적으로 로드"""

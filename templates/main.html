@@ -1,18 +1,17 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}🧳여행 다움🧳{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2>🧳 여행 다움 메인 페이지</h2>
-    <hr>
-
     <!-- 검색창 -->
     <div class="mb-4">
-        <form method="get" action="{% url 'places:search_results' %}">
+        <form method="get" action="{% url 'places:search_results' %}" class="m-search">
             <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
-            <button type="submit" class="btn btn-primary mt-2">검색</button>
+            <button type="submit" class="btn btn-primary mt-2"><img src="{% static 'images/검색버튼.png' %}" alt="검색 버튼" id="searchButton"></button>
         </form>
+        
     </div>
 
     <!-- 탭 버튼들 -->
@@ -32,19 +31,27 @@
     </ul>
 
     <!-- 탭 콘텐츠를 표시할 영역 -->
-    <div id="tabContent" class="mt-4"></div>
+    <div id="tabContent" class="mt-4">
+        <div class="carousel-content"></div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const tabs = document.querySelectorAll('#mainTabs .nav-link');
-    const tabContent = document.getElementById('tabContent');
+    const tabContentWrapper = document.querySelector('.carousel-wrapper'); // Wrapper
+    const tabContent = document.querySelector('.carousel-content'); // Slider content
 
     function loadTabContent(tab) {
         fetch(`/places/load_tab/${tab}/`)
             .then(response => response.text())
             .then(data => {
+                // 원본 콘텐츠 추가
                 tabContent.innerHTML = data;
+
+                // 콘텐츠 복제
+                const clonedContent = tabContent.cloneNode(true);
+                tabContentWrapper.appendChild(clonedContent); // 복제된 콘텐츠 추가
             })
             .catch(error => console.error('Error loading tab content:', error));
     }
@@ -54,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 탭 클릭 시 AJAX로 콘텐츠 로드
     tabs.forEach(tab => {
-        tab.addEventListener('click', function(event) {
+        tab.addEventListener('click', function (event) {
             event.preventDefault();
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
@@ -63,5 +70,156 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 </script>
+
+<style>
+    .mt-5 {
+    margin-top: 7rem !important;
+    }
+    .h-m-header-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #508344;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.m-search {
+    position: relative;
+        margin-top: 25px; /* 로고와의 간격을 맞추기 위해 margin-top을 적당히 설정 */
+        display: flex;
+        align-items: center;
+        width: 70%;
+        max-width: 600px;
+        margin:auto;
+        justify-content: center;
+    }
+
+    .mt-5 {
+        margin-top: unset;
+        margin-bottom: 10rem;
+    }
+    /* 검색창 */
+    .btn-primary {
+    --bs-btn-bg: unset; 
+    --bs-btn-border-color: unset;
+    }
+form input[type="text"] {
+    width: 100%;
+        padding: 10px 40px 10px 10px;
+        font-size: 16px;
+        border: 2px solid #508344;
+        border-radius: 30px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+#searchButton {
+    position: absolute;
+    top: 10px;
+    right: 31px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    }
+
+form button {
+    background-color: #3b873e;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #2f6f31; /* 어두운 초록색 */
+}
+
+
+/* 탭 버튼 */
+.nav-tabs {
+    justify-content: center; /* 중앙 정렬 */
+    border-bottom: none; /* 기본 탭 경계선 제거 */
+    margin-bottom: 20px;
+}
+
+.nav-tabs .nav-link {
+    color: #3b873e;
+    background-color: #f8f8f8;
+    border: 1px solid #3b873e;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin: 0 5px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.nav-tabs .nav-link.active {
+    color: white;
+    background-color: #3b873e;
+    border: 1px solid #3b873e;
+}
+
+/* 콘텐츠 영역 */
+#tabContent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* 반응형 디자인 */
+    gap: 20px; /* 카드 간격 */
+}
+
+/* 카드 스타일 */
+.card {
+    border: 1px solid #3b873e;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: calc(25% - 20px); /* 4개의 카드 배치 */
+    text-align: center;
+    padding: 15px;
+}
+
+.card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.card-title {
+    color: #3b873e;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.carousel-wrapper {
+    overflow: hidden; /* 넘치는 부분 숨기기 */
+    width: 100%; /* 컨테이너 전체 너비 */
+    position: relative; /* 위치 설정 */
+    height: 300px; /* 슬라이더 높이 */
+}
+
+.carousel-content {
+    display: flex; /* 가로로 정렬 */
+    flex-wrap: nowrap; /* 줄바꿈 방지 */
+    gap: 10px; /* 카드 간 간격 */
+    animation: slide 20s linear infinite; /* 슬라이더 애니메이션, 속도 느리게 */
+}
+
+.card {
+    flex: 0 0 auto; /* 카드 크기 고정 */
+    width: 300px; /* 카드 너비 */
+    height: 100%; /* 카드 높이 */
+}
+
+@keyframes slide {
+    from {
+        transform: translateX(0); /* 시작 위치 */
+    }
+    to {
+        transform: translateX(-50%); /* 슬라이더가 절반까지 이동 */
+    }
+}
+</style>
 {% endblock %}

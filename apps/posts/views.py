@@ -25,15 +25,29 @@ def get_friends(user):
             friends.add(request.from_user)
     return friends
 
+from django.db.models import Q
+
 @login_required
 def post_list(request):
     """일반 게시글 목록: 친구가 아닌 사용자의 게시글만 표시하고, 본인이 작성한 게시글은 제외"""
     sort = request.GET.get('sort', 'latest')
+
+    # 친구 목록 가져오기
     friends = get_friends(request.user)
+    
+    # 디버깅용 출력
+    print(f"Friends: {[friend.username for friend in friends]}")
 
-    # 친구가 아닌 사용자의 게시글만 가져오고, 본인이 작성한 게시글 제외
-    posts = Post.objects.exclude(author__in=friends).exclude(author=request.user)  # 이 부분 수정
+    # 친구와 본인을 제외한 게시글 가져오기
+    if friends:
+        posts = Post.objects.exclude(Q(author__in=friends) | Q(author=request.user))
+    else:
+        posts = Post.objects.exclude(author=request.user)
 
+    # 디버깅용 출력
+    print(f"Post count before sorting: {posts.count()}")
+
+    # 사용자가 찜한 게시글 목록 가져오기
     user_bookmarks = Bookmark.objects.filter(user=request.user).values_list('post_id', flat=True)
 
     # 정렬 옵션 처리
@@ -44,12 +58,14 @@ def post_list(request):
     elif sort == 'likes':
         posts = sorted(posts, key=lambda p: p.like_set.count(), reverse=True)
 
+    # 디버깅용 출력
+    print(f"Post count after sorting: {len(posts) if isinstance(posts, list) else posts.count()}")
+
     return render(request, 'posts/posts_list.html', {
         'posts': posts,
         'user_bookmarks': user_bookmarks,
         'sort': sort
     })
-
 
 @login_required
 def friends_posts(request):

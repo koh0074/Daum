@@ -2,59 +2,131 @@
 {% load static %}
 
 {% block content %}
-<h2>게시글 작성</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div class="mb-3">
-        <label for="id_title" class="form-label">제목</label>
-        {{ form.title }}
-    </div>
-    <div class="mb-3">
-        <label for="id_content" class="form-label">내용</label>
-        {{ form.content }}
-    </div>
-    <div class="mb-3">
-        <label for="id_location" class="form-label">위치</label>
-        {{ form.location }}
-    </div>
-    
-    <div class="mb-3">
-        <label class="form-label">별점</label>
-        <div id="star-rating" class="star-rating">
-            {% for i in "123" %}
-                <span class="star{% if i <= form.instance.rating|stringformat:"i" %} selected{% endif %}" data-value="{{ i }}">★</span>
-            {% endfor %}
+<div class="container">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="location-bar">
+            <!-- <label for="id_location" class="form-label"></label> -->
+            {{ form.location }}
+            <img src="{% static 'images/공개-전체공개.png' %}" class="access-btn" alt="전체공개" width="120px">
         </div>
-        <input type="hidden" id="id_rating" name="rating" value="{{ form.instance.rating }}">
-    </div>
-    
 
 
-
-    <!-- 사진 업로드 부분 -->
-
-    <div class="mb-3">
-        <label for="id_image_upload" class="form-label">사진 업로드</label>
-        <input type="file" id="id_image_upload" accept="image/*">
-        <div id="image-preview" style="margin-top: 10px;"></div>
-    </div>
-
-
-    <!-- 태그 선택 부분 
-    <div class="mb-3">
-        <label class="form-label">태그</label>
-        <div id="tag-container">
-            {% for tag in tags %}
-                <button type="button" class="tag-btn" data-value="{{ tag }}">{{ tag }}</button>
-            {% endfor %}
+        <div class="input-section">
+            <!-- <label for="id_title" class="form-label"></label> -->
+            {{ form.title }}
+            <button class="store-btn">임시저장</button>
+            <button class="count-store-btn">0</button>
+            <button type="submit" class="btn btn-primary publish-btn">출간하기</button>
         </div>
-        <input type="hidden" id="id_tags" name="tags" value="">
-    </div>-->
 
-    <button type="submit" class="btn btn-primary">출간하기</button>
-</form>
+        <div class="text_rating">
+            <div class="left-buttons" id="text-rating-btn">
+                <button id="bold-btn"><img src="{% static 'images/text-bold.png' %}" width="30px"></button>
+                <button id="underline-btn"><img src="{% static 'images/text-line.png' %}" width="30px"></button>
+                <button id="center-align-btn"><img src="{% static 'images/text-array.png' %}" width="30px"></button>
+            </div> 
+
+            <!-- <label class="form-label">별점</label> -->
+            <div id="star-rating" class="star-rating right-buttons">
+                {% for i in "123" %}
+                    <span class="star{% if i <= form.instance.rating|stringformat:"i" %} selected{% endif %}" data-value="{{ i }}">★</span>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="id_rating" name="rating" value="{{ form.instance.rating }}">
+        </div>
+
+        <!-- contenteditable을 적용할 div -->
+        <div id="editable-text" contenteditable="true" class="form-control" style="min-height: 200px;">
+            {{ form.content.value|default:"" }}
+        </div>
+
+        <!-- 원래의 textarea는 숨기고, 폼 제출 시 동적으로 contenteditable 내용을 전달 -->
+        <textarea name="content" id="id_content" style="display:none;">{{ form.content.value }}</textarea>
+                
+
+        <!-- 사진 업로드 부분 -->
+
+        <div class="mb-3">
+            <label for="id_image_upload" class="form-label">사진 업로드</label>
+            <input type="file" id="id_image_upload" accept="image/*">
+            <div id="image-preview" style="margin-top: 10px;"></div>
+        </div>
+
+
+        <!-- 태그 선택 부분 
+        <div class="mb-3">
+            <label class="form-label">태그</label>
+            <div id="tag-container">
+                {% for tag in tags %}
+                    <button type="button" class="tag-btn" data-value="{{ tag }}">{{ tag }}</button>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="id_tags" name="tags" value="">
+        </div>-->
+
+    </form>
+</div>
 
 <script>
+
+    // 전체공개 이미지 버튼튼
+    const images = [
+    "{% static 'images/공개-전체공개.png' %}",
+    "{% static 'images/공개-친구공개.png' %}",
+    "{% static 'images/공개-나만공개.png' %}"
+    ];
+
+    let currentImageIndex = 0;
+
+    const accessButton = document.querySelector('.access-btn');
+
+
+    accessButton.addEventListener('click', () => {
+
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    accessButton.src = images[currentImageIndex];
+    });
+
+    //(체크) title 옆에 버튼 3개 헤더 완성되면 모달이랑 같이 구현해야함
+
+
+    // 글자 굵게 버튼
+    document.getElementById('bold-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        document.execCommand('bold');
+    });
+
+    // 밑줄 버튼
+    document.getElementById('underline-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        document.execCommand('underline');
+    });
+
+    // 가운데 정렬 버튼
+    let isCentered = false; // 상태 추적
+    document.getElementById('center-align-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        if (isCentered) {
+            document.execCommand('justifyLeft');
+        } else {
+            document.execCommand('justifyCenter');
+        }
+        isCentered = !isCentered;
+    });
+
+
+
+    // 폼 제출 시 contenteditable 값 저장
+    document.querySelector('form').addEventListener('submit', (e) => {
+        const editableText = document.getElementById('editable-text');
+        const hiddenContent = document.getElementById('hidden-content');
+        hiddenContent.value = editableText.innerText.trim(); // contenteditable의 HTML 저장
+    });
+    
+
+    // 별점 
     const stars = document.querySelectorAll('#star-rating .star');
     const ratingInput = document.getElementById('id_rating');
 
@@ -128,6 +200,136 @@
 
 
 <style>
+    .container {
+        width: 90%;
+        height:100%;
+        max-width:1400px;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+    .location-bar {
+        display: flex; /* 플렉스박스 사용 */
+        align-items: center; /* 세로 가운데 정렬 */
+        gap: 10px; /* input과 img 간격 */
+    }
+    .form-control {
+        display: inline-block; /* 한 줄 배치 */
+        cursor: pointer;
+    }
+    #id_location{
+        background-color: #D9D9D9;
+        opacity: 0.5;
+        color: #333;
+        padding: 8px 15px;
+        width: 350px; /* 원하는 너비 */
+        height: 40px; /* 원하는 높이 */
+        border-radius: 10px;
+        border: none;
+    }
+    .location-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .access-btn {
+        cursor: pointer;
+        margin-left: 15px;
+    }
+    .access-btn:hover{
+        transform: scale(1.01);
+    }
+    
+        
+    .input-section {
+        display: flex;
+        align-items: center;
+        margin-top: 10px; 
+    }
+
+    .input-section button:hover{
+        transform: scale(1.01);
+    }
+
+    #id_title {
+        flex: 1;
+        background-color: #F9F8EB;
+        padding: 10px;
+        border: solid 1px #508344;
+        border-radius: 20px;
+        height: 45px;
+
+    }
+
+    .store-btn {
+        background-color: #D9D9D9 ;
+        opacity: 0.5;
+        color: #333;
+        padding: 10px;
+        height: 45px;
+        width: 90px;
+        margin-left: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .count-store-btn {
+        background-color: #D9D9D9 ;
+        opacity: 0.5;
+        color: #333;
+        height: 45px;
+        width: 50px;
+        padding: 10px;
+        margin-left: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .publish-btn {
+        background: linear-gradient(to bottom, #508344, #759C6B);
+        color: white;
+        font-size: 17px;
+        height: 45px;
+        width: 110px;
+        padding: 8px 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+    
+        
+    .text_rating {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .text_rating .left-buttons,
+    .text_rating .right-buttons {
+        display: flex;
+    }
+
+    .text_rating .left-buttons button{
+        padding: 10px 10px 5px 10px;
+    }
+    .text_rating .left-buttons button,
+    .text_rating .right-buttons button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .text_rating .left-buttons button img,
+    .text_rating .right-buttons button img {
+        width: 30px;
+        height: auto;
+    }
+
     .star {
         font-size: 2rem;
         cursor: pointer;
@@ -142,6 +344,18 @@
         gap: 5px;
     }
 
+    #editable-text{
+        width: 100%;
+        height: 280px;
+        padding: 15px;
+        background-color: #F9F8EB;
+        border: solid 1px #508344;
+        border-radius: 15px;
+        margin-top: 10px;
+        resize: none;
+        font-size: 14px;
+    }
+    
     .tag-btn {
         display: inline-block;
         padding: 5px 10px;

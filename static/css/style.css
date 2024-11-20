@@ -1,11 +1,16 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 /* 기본 스타일 설정 */
 body {
-    background-color: #F9F8EB; /* 전체 배경색을 베이지 톤으로 설정 */
-    color: black;
-    margin: 0;
     font-family: 'Noto Sans', 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #E2F5D0, #F9F8EB);
+    justify-content: center;
+    align-items: center;
     height: 100vh;
-    overflow-x: hidden;
+    width: 100wh;
 }
 
 /* 헤더와 메뉴 바 스타일 */
@@ -13,9 +18,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 30px;
+    padding: 15px 70px;
     background-color: #E2F5D0;
-    border-bottom: 2px solid #508344;
 }
 
 .menu-bar .menu-left {
@@ -24,12 +28,13 @@ body {
     gap: 30px; /* 항목 간 간격 조정 */
 }
 
-.menu-bar h4, .menu-item, .dropdown-button {
+.menu-bar h4, .menu-item, .dropdown-button, .h-booktravel{
     margin: 0;
     cursor: pointer;
     color: #508344;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 20px;
+    text-decoration: none;
 }
 
 .menu-bar h4:hover, .menu-item:hover {
@@ -44,7 +49,7 @@ body {
 }
 
 .menu-bar .icons img {
-    width: 32px;
+    width: 35px;
     height: auto;
     cursor: pointer;
     transition: transform 0.2s ease;
@@ -85,8 +90,8 @@ body {
 }
 
 .dropdown-content a:hover {
-    background-color: #E2F5D0;
-    color: #3A6B2F;
+    color: white;
+    background-color: rgba(80, 131, 68, 0.9);
 }
 
 /* 검색창 스타일 */

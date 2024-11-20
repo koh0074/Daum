@@ -1,9 +1,187 @@
-{% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<form method="POST" action="">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="SignUp">
-</form>
-{% endblock content %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행다움 회원가입 창</title>
+    <style>
+        /* 기본 스타일 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #c2eab0, #FBFDF7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        body {
+            font-family: '학교안심여행체', sans-serif;
+            color: #4f4f4f;
+            padding: 70px 0 50px;
+        }
+
+        .center-image {
+            margin-top: 50px;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #508344;
+            text-align: left;
+            padding-left: 7px;
+        }
+
+        input {
+            width: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #508344;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 300px;
+            padding: 12px;
+            background-color: #508344;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #3b873e;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 20px;
+            background: transparent;
+            color: gray;
+            font-size: 10px;
+            text-align: right;
+            box-sizing: border-box;
+            z-index: 5;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 100px;
+            position: relative;
+        }
+
+        .form-container div {
+            margin-bottom: 10px;
+        }
+
+        /* 이미지 애니메이션 */
+        @keyframes floatAnimation {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+
+        .floating-images {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .floating-images img {
+            position: absolute;
+            animation: floatAnimation 6s ease-in-out infinite;
+        }
+
+        .floating-images img:nth-child(1) {
+            top: 10%; left: 5%;
+            animation-duration: 6s;
+            animation-delay: 1s;
+        }
+        .floating-images img:nth-child(2) {
+            top: 45%; left: 12%;
+            animation-duration: 7s;
+            animation-delay: 2s;
+        }
+        .floating-images img:nth-child(3) {
+            top: 70%; left: 8%;
+            animation-duration: 8s;
+            animation-delay: 3s;
+        }
+        .floating-images img:nth-child(4) {
+            top: 30%; left: 20%;
+            animation-duration: 7s;
+            animation-delay: 1.5s;
+        }
+        .floating-images img:nth-child(5) {
+            top: 10%; right: 5%;
+            animation-duration: 6s;
+            animation-delay: 1.5s;
+        }
+        .floating-images img:nth-child(6) {
+            top: 35%; right: 12%;
+            animation-duration: 7s;
+            animation-delay: 2.5s;
+        }
+        .floating-images img:nth-child(7) {
+            top: 60%; right: 20%;
+            animation-duration: 8s;
+            animation-delay: 3.5s;
+        }
+        .floating-images img:nth-child(8) {
+            top: 80%; right: 10%;
+            animation-duration: 7s;
+            animation-delay: 4.5s;
+        }
+    </style>
+</head>
+<body>
+    <!-- 로고 이미지 -->
+    <a href="{% url 'posts:main' %}"><img src="{% static 'images/여행다움 로고.png' %}" alt="여행다움 로고" class="center-image" width="250" height="70"></a>
+
+    <!-- 회원가입 폼 -->
+    <div class="form-container">
+        <form method="POST" action="">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit">회원가입</button>
+        </form>
+    </div>
+
+    <!-- 부유하는 이미지들 -->
+    <div class="floating-images">
+        <img src="{% static 'images/태그-맛집탐방.png' %}" alt="맛집탐방" width="100" height="40">
+        <img src="{% static 'images/태그-산책길.png' %}" alt="산책길" width="100" height="40">
+        <img src="{% static 'images/태그-이색체험.png' %}" alt="이색체험" width="100" height="40">
+        <img src="{% static 'images/태그-나들이.png' %}" alt="나들이" width="100" height="40">
+        <img src="{% static 'images/태그-지역축제.png' %}" alt="지역축제" width="100" height="40">
+        <img src="{% static 'images/태그-캠핑장.png' %}" alt="캠핑장" width="100" height="40">
+        <img src="{% static 'images/태그-호캉스.png' %}" alt="호캉스" width="100" height="40">
+        <img src="{% static 'images/태그-휴양지.png' %}" alt="휴양지" width="100" height="40">
+    </div>
+</body>
+</html>
+{% endblock %}

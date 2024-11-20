@@ -16,7 +16,7 @@
             <div class="menu-left">
                 <div class="dropdown">
                     <h4>전체보기</h4>
-                    <div class="dropdown-content">
+                    <div class="dropdown-content" style="left: 150%">
                         <a href="{% url 'places:festival_list' %}">지역축제 정보</a>
                         <a href="{% url 'places:travel_list' %}">국내 여행지 정보</a>
                         <a href="{% url 'posts:post_list' %}">남의 여행일기</a>
@@ -25,7 +25,7 @@
                 </div>
                 <div class="dropdown">
                     <h4>친구추가</h4>
-                    <div class="dropdown-content search-box">
+                    <div class="dropdown-content search-box" style="left: 150%">
                         <form id="friend-search-form" method="post" action="{% url 'accounts:search_user' %}">
                             {% csrf_token %}
                             <input type="text" id="friend-search-input" name="user_id" placeholder="친구 검색" class="search-input" required>
@@ -36,17 +36,56 @@
                         <div id="search-result" class="mt-3"></div>
                     </div>
                 </div>
-                <a href="{% url 'places:bookmarked_festivals' %}">찜한 여행</a>
-                <a href="{% url 'posts:main' %}"><h4>여행 다움</h4></a>
+                <a href="{% url 'places:bookmarked_festivals' %}" class="h-booktravel">찜한 여행</a>
+            </div>
+            <div class="h-logo">
+                <a href="{% url 'posts:main' %}" id="h-home" class="h-header-title"><img src="{% static 'images/여행다움 로고.png' %}" alt="logo" width="237.76" height="68"></a>
             </div>
             <div class="icons">
                 <a href="{% url 'posts:post_create' %}">
-                    <img src="{% static 'images/글쓰기-평소.png' %}" alt="Edit">
+                    <img src="{% static 'images/글쓰기-평소.png' %}" id="pen" alt="Edit">
                 </a>
-                <img src="{% static 'images/알림-평소.png' %}" alt="Notifications" onclick="toggleRequests()">
-                <a href="{% url 'profiles:profile_main' %}">
-                    <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
-                </a>
+                <!-- 친구 요청 알림 드롭다운 -->
+            <span class="menu-item dropdown">
+                <img src="{% static 'images/알림-평소.png' %}" id="bell" alt="Notifications" onclick="toggleRequests()">
+                <div class="dropdown-content friend-requests" id="friend-requests-dropdown" style="display: none;">
+                    <h4>친구 요청</h4>
+                    <div id="friend-requests-container">
+                        <!-- AJAX로 친구 요청 목록을 가져와서 표시할 부분 -->
+                    </div>
+                </div>
+            </span>
+                <!-- 오른쪽 상단 드롭다운 메뉴 -->
+            <div class="dropdown">
+                {% if user.is_authenticated %}
+                    <!-- 로그인된 사용자의 정보 표시 -->
+                    <a href="{% url 'profiles:profile_main' %}"><span class="dropdown-button">{{ user.username }}</span></a>
+                    <div class="dropdown-content">
+                        <p>닉네임: {{ user.nickname }}</p>
+                        <p>아이디: {{ user.username }}</p>
+                        <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">로그아웃</a>
+                    </div>
+                {% else %}
+                    <!-- 로그인 폼 표시 -->
+                    <span class="dropdown-button">로그인</span>
+                    <div class="dropdown-content">
+                        <form method="post" action="{% url 'accounts:login' %}">
+                            {% csrf_token %}
+                            <h3>로그인</h3>
+                            <label for="username">아이디</label>
+                            <input type="text" id="username" name="username" required>
+
+                            <label for="password">비밀번호</label>
+                            <input type="password" id="password" name="password" required>
+
+                            <button type="submit" class="btn btn-primary">로그인</button>
+                        </form>
+                        <a href="{% url 'accounts:signup' %}">
+                            <button class="btn btn-secondary">회원가입</button>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
             </div>
         </div>
         {% block content %}{% endblock %}
@@ -54,6 +93,130 @@
 </body>
 </html>
 
+<style>
+    #pen {
+        transition: 0.2s ease-in-out; /* 부드러운 이미지 전환 */
+    }
+      
+    #pen:hover {
+        content: url({% static 'images/글쓰기-호버링.png' %}); /* 호버 시 이미지 변경 */
+      }
+      
+    #bell {
+        transition: 0.2s ease-in-out; /* 부드러운 이미지 전환 */
+      }
+      
+    #bell:hover {
+        content: url({% static 'images/알림-호버링.png' %}); /* 호버 시 이미지 변경 */
+      }
+    .h-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -8rem;
+    }
+    .h-profile-border {         /* 원하는 높이로 설정 */
+      border: 3px solid #508344; /* 테두리 색과 두께 설정 */
+      border-radius: 50%;       /* 완전한 원 형태 */
+      overflow: hidden;         /* 원을 넘어가는 부분 제거 */
+  }
+    .h-profile-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+    }
+    .h-header-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #508344;
+    display: flex;
+    align-items: center;
+}
+    .h-footer {
+        text-align: right;
+        font-size: 15px;
+        color: #aaa;
+        bottom: 
+    }
+    /* 오른쪽 상단 드롭다운 스타일 */
+.dropdown {
+    position: relative; /* 부모 요소 기준으로 위치 설정 */
+}
+
+.dropdown-content {
+    display: none; /* 기본적으로 숨김 */
+    position: absolute; /* 부모 요소를 기준으로 위치 */
+    top: 100%; /* 버튼 바로 아래에 위치 */
+    left: -170%; /* 부모 요소의 중앙으로 이동 */
+    transform: translateX(-50%); /* 가운데 정렬 */
+    background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+    border: 1px solid #ddd; /* 경계선 */
+    border-radius: 10px; /* 둥근 모서리 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+    z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+    padding: 20px; /* 내부 여백 */
+    min-width: 250px; /* 최소 너비 설정 */
+}
+.h-l-dropdown-content {
+    display: none; /* 기본적으로 숨김 */
+    position: absolute; /* 부모 요소를 기준으로 위치 */
+    top: 100%; /* 버튼 바로 아래에 위치 */
+    left: -170%; /* 부모 요소의 중앙으로 이동 */
+    transform: translateX(-50%); /* 가운데 정렬 */
+    background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+    border: 1px solid #ddd; /* 경계선 */
+    border-radius: 10px; /* 둥근 모서리 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+    z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+    padding: 20px; /* 내부 여백 */
+    min-width: 250px; /* 최소 너비 설정 */
+}
+
+/* 드롭다운 버튼과 hover 효과 */
+.dropdown:hover .dropdown-content {
+    display: block; /* 호버 시 드롭다운 표시 */
+}
+
+.dropdown-button {
+    cursor: pointer;
+    display: inline-block;
+    font-size: 16px;
+    padding: 10px;
+    color: #508344;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    background: none;
+}
+
+/* 로그인 폼 스타일 */
+.dropdown-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dropdown-content input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.dropdown-content button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    color: white;
+    background-color: #508344;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background-color: #3b873e; /* 어두운 초록색 */
+}
+</style>
 
 
 <script>
