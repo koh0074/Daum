@@ -3,7 +3,7 @@
 </h2>
 
 ### **☘️ 여행으로 발견하는 우리 지역, 여행으로 이어지는 우리 미래! ☘️** 
-
+<p>
 &nbsp; 전국 축제와 국내 여행에 관심이 있지만 흩어진 정보를 찾기가 어렵다 . . . 
 <br>
 그런 당신을 위해 만든 서비스 <b>여행다움!</b>
@@ -19,14 +19,16 @@
 가장 가까운 곳에 있는 행복을 놓치고 있지는 않았나요? 
 <br>
 이제, <b>여행다움</b>과 함께 국내여행의 세계로 떠나보세요!
-<br><br>
+</p>
 <a href="https://www.notion.so/S2C-133c1d11516680618270d8876a55af56"><img width="30" top="100" src="https://github.com/user-attachments/assets/5ef90aaa-4284-4c74-9c86-6b0ccc34f817"></a>
 <br>
 
 ## Contributors☘️
 |                             김보경<br/>([@borybop](https://github.com/borybop))                          |                            김나은<br/>([@naeuun](https://github.com/naeuun))                             |                         김채민<br/>([@KCM13](https://github.com/KCM13))                          |                            고화현<br/>([@koh0074](https://github.com/koh0074))                             |
 | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
+| <img width="200px" src="https://github.com/user-attachments/assets/2e0a7289-73c4-469f-bdf1-7944579a3869"/> | <img width="200px" src="https://github.com/user-attachments/assets/86031d33-d7ae-4640-9c27-0d4fabde3fc3"/> | <img width="200px" src="https://github.com/user-attachments/assets/63566e99-8c6a-4154-ba14-c48c22065dd7"/> | <img width="200px" src="https://github.com/user-attachments/assets/2ea9b5c0-88e7-4f6c-b98f-2eb2cef1ca6e"/> |
 |                                                  PM                                                   |                                                     FE                                                     |                                                     FE                                                     |                                                     BE                                                     |
+
 |     `구상 및 기획`<br/>`UI/UX 디자인`<br/>`애니메이션 구현`      |     `메인 홈`<br/>`전체보기`<br/>`찜한 여행`     | `글쓰기 에디터`<br/>`게시글 뷰어`<br/>`프로필 홈`  |         `ERD 설계`<br/>`기능 구현`<br/>`AWS EC2 배포`         |
 <br>
 
