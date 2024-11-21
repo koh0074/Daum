@@ -15,9 +15,11 @@ User = get_user_model()  # 변경: 기본 User 모델 대신 커스텀 User 모�
 def profile(request):
     """사용자 프로필 페이지"""
     user = request.user
-    # 사용자가 작성한 게시글 가져오기
-    posts = Post.objects.filter(author=user).order_by('-created_at')
-    
+
+    # 게시된 글과 임시 저장된 글 분리
+    draft_posts = Post.objects.filter(author=user, is_draft=True).order_by('-updated_at')  # 임시 저장된 글
+    published_posts = Post.objects.filter(author=user, is_draft=False).order_by('-created_at')  # 게시된 글
+
     # 친구 목록 가져오기 (양방향 친구 관계 확인)
     friends_ids_from = FriendRequest.objects.filter(from_user=user, is_accepted=True).values_list('to_user', flat=True)
     friends_ids_to = FriendRequest.objects.filter(to_user=user, is_accepted=True).values_list('from_user', flat=True)
@@ -31,7 +33,8 @@ def profile(request):
 
     return render(request, 'profiles/profile_main.html', {
         'user': user,
-        'posts': posts,
+        'draft_posts': draft_posts,  # 임시 저장된 글
+        'posts': published_posts,  # 게시된 글
         'friends': friends,
         'friends_count': len(friends),
         'nickname': user.first_name if user.first_name else user.username,
@@ -41,12 +44,13 @@ def profile(request):
     })
 
 
+
 @login_required
 def edit_nickname(request):
     if request.method == 'POST':
         new_nickname = request.POST.get('nickname')
         if new_nickname:
-            request.user.first_name = new_nickname
+            request.user.nickname = new_nickname
             request.user.save()
         return redirect('profiles:profile_main')
 

@@ -30,10 +30,21 @@ def festival_list(request):
 def travel_destination_list(request):
     destinations = TravelDestination.objects.all()
     destination_count = destinations.count()
+
+    # 로그인 사용자만 북마크 데이터를 가져옵니다.
+    user_bookmarks = []
+    if request.user.is_authenticated:
+        user_bookmarks = TravelBookmark.objects.filter(user=request.user).values_list('destination_id', flat=True)
+
+    # 각 여행지에 대해 북마크 상태를 설정합니다.
+    for destination in destinations:
+        destination.is_bookmarked = destination.id in user_bookmarks
+
     return render(request, 'places/travel_list.html', {
         'destinations': destinations,
         'destination_count': destination_count
     })
+
 
 @login_required
 @require_POST
@@ -52,16 +63,21 @@ def toggle_bookmark(request, festival_id):
 @login_required
 @require_POST
 def toggle_destination_bookmark(request, destination_id):
-    destination = get_object_or_404(TravelDestination, id=destination_id)
-    bookmark, created = TravelBookmark.objects.get_or_create(user=request.user, destination=destination)
-    
-    if not created:
-        bookmark.delete()
-        is_bookmarked = False
-    else:
-        is_bookmarked = True
+    try:
+        destination = get_object_or_404(TravelDestination, id=destination_id)
+        bookmark, created = TravelBookmark.objects.get_or_create(user=request.user, destination=destination)
+        
+        if not created:
+            bookmark.delete()
+            is_bookmarked = False
+        else:
+            is_bookmarked = True
+        
+        return JsonResponse({'is_bookmarked': is_bookmarked})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
-    return JsonResponse({'is_bookmarked': is_bookmarked})
+
 
 @login_required
 def bookmarked_festivals(request):

@@ -43,24 +43,19 @@
             <textarea name="content" id="id_content" style="display:none;">{{ form.content.value }}</textarea>
         </div>
 
-        <!-- Tags Section -->
         <div class="bottom-bar">
             <div class="left-buttons" id="tag-btn">
                 {% for tag in form.tags.value %}
-                    <button class="tag-button">{{ tag }}</button>
+                    {% if tag.strip %} <!-- 빈 태그를 필터링 -->
+                        <button class="tag-button">{{ tag }}</button>
+                    {% endif %}
                 {% endfor %}
                 <button id="add-tag-btn">+ 추가</button>
+                <input type="hidden" name="tags" id="selected-tags" 
+                    value="{% for tag in form.tags.value %}{% if tag.strip %}{{ tag }},{% endif %}{% endfor %}">
             </div>
-            
-            <!-- Tag Modal -->
-            <div id="tag-modal" class="tag-modal">
-                <div class="modal-content">
-                    <span class="close-btn">&times;</span>
-                    <h2>태그 추가</h2>
-                    <input type="text" id="new-tag" placeholder="태그를 입력하세요">
-                    <button id="confirm-tag-btn">확인</button>
-                </div>
-            </div>
+        </div>
+        
 
             <div class="right-buttons">
                 <button class="add-lbtn">
@@ -88,6 +83,23 @@
     "{% static 'images/공개-친구공개.png' %}",
     "{% static 'images/공개-나만공개.png' %}"
     ];
+    document.querySelector('#add-tag-btn').addEventListener('click', function () {
+    const newTag = document.querySelector('#new-tag').value.trim();
+    if (newTag) {
+        const selectedTagsInput = document.getElementById('selected-tags');
+        const currentTags = selectedTagsInput.value.split(',').filter(tag => tag.trim());
+        if (!currentTags.includes(newTag)) {
+            currentTags.push(newTag);
+            selectedTagsInput.value = currentTags.join(',');
+        }
+        // 새로운 태그를 UI에 추가
+        const tagButton = document.createElement('button');
+        tagButton.textContent = newTag;
+        tagButton.className = 'tag-button';
+        document.getElementById('tag-btn').appendChild(tagButton);
+    }
+    document.querySelector('#new-tag').value = ''; // 입력 필드 초기화
+});
 
     let currentImageIndex = 0;
 

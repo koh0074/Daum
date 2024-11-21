@@ -17,6 +17,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to='images/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_draft = models.BooleanField(default=False)  # 임시 저장 여부
 
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -54,5 +55,3 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.title}"
-
-

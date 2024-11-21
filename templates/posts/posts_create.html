@@ -15,9 +15,10 @@
 
         <div class="input-section">
             <!-- <label for="id_title" class="form-label"></label> -->
+            {% csrf_token %}
             {{ form.title }}
-            <button class="store-btn">임시저장</button>
-            <button class="count-store-btn">0</button>
+            <button class="store-btn" type="button" id="save-draft-btn">임시저장</button>
+            <button class="count-store-btn" disabled>{{ draft_count }}</button> <!-- 임시 저장된 게시글 수 표시 -->
             <button type="submit" class="btn btn-primary publish-btn">출간하기</button>
         </div>
 
@@ -58,12 +59,12 @@
             
             <!-- 태그 추가 모달 -->
             <div id="tag-modal" class="tag-modal">
-                <div class="modal-content">
+              <div class="modal-content">
                 <span class="close-btn">&times;</span>
                 <h2>태그 추가</h2>
                 <input type="text" id="new-tag" placeholder="태그를 입력하세요">
                 <button id="confirm-tag-btn">확인</button>
-            </div>
+              </div>
             </div>
   
             <div class="right-buttons">
@@ -171,6 +172,33 @@
         hiddenTextarea.value = sanitizeHTML(editableText.innerHTML);
     });
 
+    document.getElementById('save-draft-btn').addEventListener('click', function () {
+    const title = document.querySelector('input[name="title"]').value;
+    const content = document.querySelector('textarea[name="content"]').value;
+
+    fetch('/save-draft/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            title: title,
+            content: content,
+            is_draft: true
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.draft_count !== undefined) {
+            // 임시 저장된 게시글 수 업데이트
+            const countBtn = document.querySelector('.count-store-btn');
+            countBtn.textContent = data.draft_count;
+        }
+        alert('임시 저장되었습니다!');
+    })
+    .catch(error => console.error('Error:', error));
+});
 
 
     // 별점 
@@ -200,22 +228,23 @@
     // 페이지 로드 시 초기 별점 설정
     updateStars(parseInt(ratingInput.value) || 0);
 
-
     // 태그 버튼 선택 관리
     const selectedTags = [];
     document.querySelectorAll('.tag-button').forEach(tag => {
-    tag.addEventListener('click', () => {
-        // 태그 선택 시 배경색 토글
-        if (selectedTags.includes(tag.innerText)) {
-        tag.style.backgroundColor = "#D9D9D9"; // 선택 해제
-        selectedTags.splice(selectedTags.indexOf(tag.innerText), 1);
-        } else if (selectedTags.length < 3) {
-        tag.style.backgroundColor = "#508344"; // 선택
-        selectedTags.push(tag.innerText);
-        } else {
-        alert("태그는 최대 3개까지 선택할 수 있습니다.");
-        }
-    });
+        tag.addEventListener('click', (event) => {
+            event.preventDefault(); // 기본 폼 제출 동작 방지
+
+            // 태그 선택 시 배경색 토글
+            if (selectedTags.includes(tag.innerText)) {
+                tag.style.backgroundColor = "#D9D9D9"; // 선택 해제
+                selectedTags.splice(selectedTags.indexOf(tag.innerText), 1);
+            } else if (selectedTags.length < 3) {
+                tag.style.backgroundColor = "#508344"; // 선택
+                selectedTags.push(tag.innerText);
+            } else {
+                alert("태그는 최대 3개까지 선택할 수 있습니다.");
+            }
+        });
     });
 
     // 기존의 모든 태그 버튼에 contextmenu 이벤트 추가
@@ -346,9 +375,6 @@
         const imageInput = document.getElementById('id_content');
         imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
     });
-
-
-
 </script>
 
 
