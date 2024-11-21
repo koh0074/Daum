@@ -1,7 +1,10 @@
 <h2>🌱제 1회 디지털소프트웨어공학부 해커톤 Seed2Code🌱 <br>
-<img width="320" src="https://github.com/user-attachments/assets/68d8e2bb-2755-4331-aa85-f069216e427f"></h2>
+<img width="320" src="https://github.com/user-attachments/assets/68d8e2bb-2755-4331-aa85-f069216e427f">
+  &nbsp;
+<img width="30" src="https://github.com/user-attachments/assets/5ef90aaa-4284-4c74-9c86-6b0ccc34f817">
+</h2>
 
-### **☘️ 여행으로 발견하는 우리 지역, 여행으로 이어지는 우리 미래! ☘️** [기획안](https://www.notion.so/S2C-133c1d11516680618270d8876a55af56)
+### **☘️ 여행으로 발견하는 우리 지역, 여행으로 이어지는 우리 미래! ☘️** 
 
 &nbsp; 전국 축제와 국내 여행에 관심이 있지만 흩어진 정보를 찾기가 어렵다 . . . 
 <br>
@@ -18,14 +21,13 @@
 가장 가까운 곳에 있는 행복을 놓치고 있지는 않았나요? 
 <br>
 이제, <b>여행다움</b>과 함께 국내여행의 세계로 떠나보세요!
-
-<br>
+<br><br>
 
 ## Contributors☘️
 |                             김보경<br/>([@borybop](https://github.com/borybop))                          |                            김나은<br/>([@naeuun](https://github.com/naeuun))                             |                         김채민<br/>([@KCM13](https://github.com/KCM13))                          |                            고화현<br/>([@koh0074](https://github.com/koh0074))                             |
 | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
-|                                                  `PM`                                                   |                                                     `FE`                                                     |                                                     `FE`                                                     |                                                     `BE`                                                     |
-
+|                                                  PM                                                   |                                                     FE                                                     |                                                     FE                                                     |                                                     BE                                                     |
+|     `구상 및 기획`<br/>`UI/UX 디자인`<br/>`애니메이션 구현`      |     `메인 홈`<br/>`전체보기`<br/>`찜한 여행`     | `글쓰기 에디터`<br/>`게시글 뷰어`<br/>`프로필 홈`  |         `ERD 설계`<br/>`기능 구현`<br/>`AWS EC2 배포`         |
 <br>
 
 ## Screenshots☘️
@@ -54,6 +56,7 @@
 
 ## Tech Stack☘️
 
+![Figma](https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white)
