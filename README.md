@@ -25,11 +25,11 @@
 
 ## Contributors☘️
 |                             김보경<br/>([@borybop](https://github.com/borybop))                          |                            김나은<br/>([@naeuun](https://github.com/naeuun))                             |                         김채민<br/>([@KCM13](https://github.com/KCM13))                          |                            고화현<br/>([@koh0074](https://github.com/koh0074))                             |
-| :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
-| <img width="200px" src="https://github.com/user-attachments/assets/2e0a7289-73c4-469f-bdf1-7944579a3869"/> | <img width="200px" src="https://github.com/user-attachments/assets/86031d33-d7ae-4640-9c27-0d4fabde3fc3"/> | <img width="200px" src="https://github.com/user-attachments/assets/63566e99-8c6a-4154-ba14-c48c22065dd7"/> | <img width="200px" src="https://github.com/user-attachments/assets/2ea9b5c0-88e7-4f6c-b98f-2eb2cef1ca6e"/> |
+|:--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
+| <img width="200px" height="200px" src="https://github.com/user-attachments/assets/33406568-bf50-44fc-bda6-f703373041d0"/> | <img width="200px" height="200px" src="https://github.com/user-attachments/assets/3bd8642e-b210-4a8f-b9fc-f0c68ace5c3e"/> | <img width="200px" height="200px" src="https://github.com/user-attachments/assets/9fcd109a-1263-4e46-82da-c4631119a82d"/> | <img width="200px" height="200px" object-fit="cover" src="https://github.com/user-attachments/assets/50a6231e-e1ee-431e-a240-ca4c11a411a6"/> |
 |                                                  PM                                                   |                                                     FE                                                     |                                                     FE                                                     |                                                     BE                                                     |
-
 |     `구상 및 기획`<br/>`UI/UX 디자인`<br/>`애니메이션 구현`      |     `메인 홈`<br/>`전체보기`<br/>`찜한 여행`     | `글쓰기 에디터`<br/>`게시글 뷰어`<br/>`프로필 홈`  |         `ERD 설계`<br/>`기능 구현`<br/>`AWS EC2 배포`         |
+
 <br>
 
 ## Screenshots☘️
