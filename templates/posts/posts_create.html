@@ -37,22 +37,52 @@
             <input type="hidden" id="id_rating" name="rating" value="{{ form.instance.rating }}">
         </div>
 
-        <!-- contenteditable을 적용할 div -->
-        <div id="editable-text" contenteditable="true" class="form-control" style="min-height: 200px;">
-            {{ form.content.value|default:"" }}
+        <!-- Content Field -->
+        <div class="content-container">
+            <div id="editable-text" contenteditable="true" class="form-control" style="min-height: 200px;">
+                {{ form.content.value|default:"" | safe }}
+            </div>
+            <textarea name="content" id="id_content" style="display:none;">{{ form.content.value }}</textarea>
         </div>
+ 
+        <div class="bottom-bar">
+            <div class="left-buttons" id="tag-btn">
+                <button class="tag-button">지역축제</button>
+                <button class="tag-button">나들이</button>
+                <button class="tag-button">이색체험</button>
+                <button class="tag-button">휴양지</button>
+                <button class="tag-button">맛집탐방</button>
+                <button class="tag-button">캠핑</button>
+                <button id="add-tag-btn">+ 추가</button>
+            </div>
+            
+            <!-- 태그 추가 모달 -->
+            <div id="tag-modal" class="tag-modal">
+                <div class="modal-content">
+                <span class="close-btn">&times;</span>
+                <h2>태그 추가</h2>
+                <input type="text" id="new-tag" placeholder="태그를 입력하세요">
+                <button id="confirm-tag-btn">확인</button>
+            </div>
+            </div>
+  
+            <div class="right-buttons">
+                <button class="add-lbtn">
+                    <img src="{% static 'images/add_locate.png' %}" alt="위치 선택 버튼" width="50">
+                </button>
+                <button type="button" class="add-pbtn">
+                    <img src="{% static 'images/add_pic.png' %}" alt="사진 선택 버튼" width="50">
+                </button>
+            </div>
+            
+            <!-- 숨겨진 파일 입력 필드 -->
+            <input type="file" id="id_image_upload" accept="image/*" style="display: none;">
 
-        <!-- 원래의 textarea는 숨기고, 폼 제출 시 동적으로 contenteditable 내용을 전달 -->
-        <textarea name="content" id="id_content" style="display:none;">{{ form.content.value }}</textarea>
-                
-
-        <!-- 사진 업로드 부분 -->
-
-        <div class="mb-3">
-            <label for="id_image_upload" class="form-label">사진 업로드</label>
-            <input type="file" id="id_image_upload" accept="image/*">
-            <div id="image-preview" style="margin-top: 10px;"></div>
+            
         </div>
+      
+
+
 
 
         <!-- 태그 선택 부분 
@@ -89,8 +119,6 @@
     accessButton.src = images[currentImageIndex];
     });
 
-    //(체크) title 옆에 버튼 3개 헤더 완성되면 모달이랑 같이 구현해야함
-
 
     // 글자 굵게 버튼
     document.getElementById('bold-btn').addEventListener('click', (event) => {
@@ -116,15 +144,34 @@
         isCentered = !isCentered;
     });
 
+    // 스타일 고정: contenteditable 영역의 p 태그나 div 태그에 적용
+    const editableText = document.getElementById('editable-text');
+    const hiddenTextarea = document.getElementById('id_content');
 
+    // HTML을 안전하게 정리하는 함수
+    function sanitizeHTML(html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
 
-    // 폼 제출 시 contenteditable 값 저장
-    document.querySelector('form').addEventListener('submit', (e) => {
-        const editableText = document.getElementById('editable-text');
-        const hiddenContent = document.getElementById('hidden-content');
-        hiddenContent.value = editableText.innerText.trim(); // contenteditable의 HTML 저장
+        // 허용된 태그만 유지
+        const allowedTags = ['b', 'u', 'i', 'br', 'div', 'p'];
+        tempDiv.querySelectorAll('*').forEach(el => {
+            if (!allowedTags.includes(el.tagName.toLowerCase())) {
+                el.replaceWith(el.innerText); // 허용되지 않은 태그는 텍스트로 변환
+            }
+        });
+
+        // 엔터키 처리: <br>태그를 추가하여 줄바꿈 반영
+        let sanitizedHTML = tempDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/<div>/g, '<br>').replace(/<\/div>/g, '');
+        return sanitizedHTML;
+    }
+
+    // contenteditable의 변경 사항을 textarea로 동기화
+    editableText.addEventListener('input', function () {
+        hiddenTextarea.value = sanitizeHTML(editableText.innerHTML);
     });
-    
+
+
 
     // 별점 
     const stars = document.querySelectorAll('#star-rating .star');
@@ -154,48 +201,154 @@
     updateStars(parseInt(ratingInput.value) || 0);
 
 
-    // 태그 선택 기능
-    const tagButtons = document.querySelectorAll('#tag-container .tag-btn');
-    const tagsInput = document.getElementById('id_tags');
-    let selectedTags = [];
+    // 태그 버튼 선택 관리
+    const selectedTags = [];
+    document.querySelectorAll('.tag-button').forEach(tag => {
+    tag.addEventListener('click', () => {
+        // 태그 선택 시 배경색 토글
+        if (selectedTags.includes(tag.innerText)) {
+        tag.style.backgroundColor = "#D9D9D9"; // 선택 해제
+        selectedTags.splice(selectedTags.indexOf(tag.innerText), 1);
+        } else if (selectedTags.length < 3) {
+        tag.style.backgroundColor = "#508344"; // 선택
+        selectedTags.push(tag.innerText);
+        } else {
+        alert("태그는 최대 3개까지 선택할 수 있습니다.");
+        }
+    });
+    });
 
-    function updateTags() {
-        tagsInput.value = selectedTags.join(',');
-    }
-
-    tagButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tagValue = this.getAttribute('data-value');
-            
-            if (selectedTags.includes(tagValue)) {
-                selectedTags = selectedTags.filter(tag => tag !== tagValue);
-                this.classList.remove('selected');
-            } else {
-                selectedTags.push(tagValue);
-                this.classList.add('selected');
-            }
-            updateTags();
-        });
+    // 기존의 모든 태그 버튼에 contextmenu 이벤트 추가
+    document.querySelectorAll('.tag-button').forEach(tagBtn => {
+    tagBtn.addEventListener('contextmenu', (event) => {
+        event.preventDefault(); // 기본 오른쪽 클릭 메뉴 방지
+        const tagText = tagBtn.innerText; // 텍스트 추출
+        if (confirm('이 태그를 삭제하시겠습니까?')) {
+        tagBtn.remove(); // 태그 버튼 삭제
+        selectedTags.splice(selectedTags.indexOf(tagText), 1); // 배열에서 태그 제거
+        }
+    });
     });
 
 
 
-    // 사진 업로드 기능
-    const imageInput = document.getElementById('id_image_upload');
-    const contentTextarea = document.querySelector('#id_content');
+    // 모달 열기/닫기 기능
+    const modal = document.getElementById('tag-modal'); // ID가 'tag-modal'로 변경
+    const addTagBtn = document.getElementById('add-tag-btn');
+    const closeBtn = document.getElementsByClassName('close-btn')[0];
+    const confirmTagBtn = document.getElementById('confirm-tag-btn');
+    const newTagInput = document.getElementById('new-tag');
+    const tagBtnContainer = document.getElementById('tag-btn');
 
-    imageInput.addEventListener('change', function(event) {
+    // 태그 추가 버튼 클릭 시 모달 열기
+    addTagBtn.addEventListener('click', () => {
+    modal.style.display = 'block';
+    });
+
+    // 모달 닫기
+    closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+    newTagInput.value = ''; // 입력값 초기화
+    });
+
+    // 모달 바깥 영역 클릭 시 모달 닫기
+    window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        modal.style.display = 'none';
+        newTagInput.value = ''; // 입력값 초기화
+    }
+    });
+
+    // 태그 확인 버튼 클릭 시 태그 추가
+    confirmTagBtn.addEventListener('click', () => {
+    const newTag = newTagInput.value.trim();
+    
+    // 3개 초과 방지 로직 추가
+    if (selectedTags.length >= 3) {
+        alert("태그는 최대 3개까지 선택할 수 있습니다.");
+        return;
+    }
+
+    if (newTag && !selectedTags.includes(newTag)) {
+        // 새로운 태그 버튼 생성
+        const tagBtn = document.createElement('button');
+        tagBtn.classList.add('tag-button');
+        tagBtn.style.backgroundColor = '#508344';
+        tagBtn.innerText = `${newTag}`; // 템플릿 문자열로 수정
+
+        // 태그 버튼을 기존 버튼 옆에 추가
+        tagBtnContainer.insertBefore(tagBtn, addTagBtn);
+
+        // 태그를 배열에 추가
+        selectedTags.push(newTag);
+
+        // 새로 추가한 태그에 클릭 이벤트 추가
+        tagBtn.addEventListener('click', () => {
+        if (selectedTags.includes(newTag)) {
+            tagBtn.style.backgroundColor = '#D9D9D9';
+            selectedTags.splice(selectedTags.indexOf(newTag), 1);
+        } else if (selectedTags.length < 3) {
+            tagBtn.style.backgroundColor = '#508344';
+            selectedTags.push(newTag);
+        } else {
+            alert("태그는 최대 3개까지 선택할 수 있습니다.");
+        }
+        });
+
+        // 새로 추가된 태그에도 오른쪽 클릭 이벤트 추가 (삭제 기능)
+        tagBtn.addEventListener('contextmenu', (event) => {
+        event.preventDefault(); // 기본 오른쪽 클릭 메뉴 방지
+        const tagText = tagBtn.innerText; // 텍스트 추출
+        if (confirm('이 태그를 삭제하시겠습니까?')) {
+            tagBtn.remove(); // 태그 버튼 삭제
+            selectedTags.splice(selectedTags.indexOf(tagText), 1); // 배열에서 태그 제거
+        }
+        });
+
+        modal.style.display = 'none'; // 모달 닫기
+        newTagInput.value = ''; // 입력값 초기화
+    } else if (selectedTags.includes(newTag)) {
+        alert('이미 선택된 태그입니다.');
+    } else {
+        alert('태그를 입력하세요.');
+    }
+    });
+
+
+    // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
+    document.querySelector('.add-pbtn').addEventListener('click', function() {
+        document.getElementById('id_image_upload').click();
+    });
+
+    // 파일이 선택되면 contenteditable 영역에 이미지 삽입 및 textarea에 파일 저장
+    document.getElementById('id_image_upload').addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                // 파일을 읽어와서 <img> 태그로 변환하여 내용 칸에 삽입
-                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto;">`;
-                contentTextarea.value += `\n${imgTag}\n`;
+                // contenteditable 영역에 이미지 삽입
+                const editableText = document.getElementById('editable-text');
+                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto; margin-top: 10px;">`;
+                editableText.innerHTML += imgTag; // 이미지 추가
+                
+                // hidden textarea에 이미지 파일 URL 저장
+                const imageInput = document.getElementById('id_content');
+                imageInput.value = editableText.innerHTML; // <textarea>에 콘텐츠 삽입
             };
             reader.readAsDataURL(file);
         }
     });
+
+
+    // 글자 스타일 적용 시 이미지가 사라지지 않도록 보호
+    document.getElementById('editable-text').addEventListener('input', function(event) {
+        const editableText = document.getElementById('editable-text');
+        const imageInput = document.getElementById('id_content');
+        imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
+    });
+
+
+
 </script>
 
 
@@ -346,7 +499,7 @@
 
     #editable-text{
         width: 100%;
-        height: 280px;
+        height: 330px;
         padding: 15px;
         background-color: #F9F8EB;
         border: solid 1px #508344;
@@ -356,6 +509,47 @@
         font-size: 14px;
     }
     
+
+    .bottom-bar {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+    }
+    
+    
+    .bottom-bar .left-buttons {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .bottom-bar .right-buttons {
+        display: flex;
+        margin-left: auto;
+    }
+    
+    .bottom-bar button, .add-btn {
+        background-color: #D9D9D9;
+        opacity: 0.5;
+        color: #333;
+        padding: 6px 10px; 
+        margin-left: 8px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 0;
+    }
+    
+    .bottom-bar .add-lbtn,
+    .bottom-bar .add-pbtn {
+        border: none;
+        background: none;
+        opacity: 100%;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    
+
     .tag-btn {
         display: inline-block;
         padding: 5px 10px;
@@ -368,6 +562,96 @@
     .tag-btn.selected {
         background-color: green;
     }
+
+
+    /* 모달 배경 */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      /* 모달 내용 */
+      .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        width: 300px;
+      }
+      
+      .modal-content button {
+        margin: 10px;
+        padding: 10px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+      }
+      
+      #saveButton { background-color: #58882b7d; color: black; }
+      #exitButton { background-color: #be2f22aa; color: black; }
+      #cancelButton { background-color: #ccc; color: black; }
+    
+    
+    
+    /* 모달 기본 스타일 */
+    #tag-modal {
+        display: none; /* 기본적으로 숨김 */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* 모달 콘텐츠 스타일 */
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 250px;
+        text-align: center;
+        font-size:20px;
+    }
+    #new-tag{
+        font-size:15px ;
+    }
+    /* 닫기 버튼 스타일 */
+    .close-btn {
+        color: #58882b7d;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 25px;
+    }
+    
+    #confirm-tag-btn { 
+        background-color: #58882b7d; 
+        color: black; 
+        font-size: 16px;
+    }
+    
+    /* contenteditable 영역 스타일 */
+     [contenteditable="true"] {
+        width: 100%; /* 원하는 너비 설정 */
+        height: 330px; /* 원하는 높이 설정 (필요에 따라 조정) */
+        overflow-y: auto; /* 세로 스크롤이 필요할 때 활성화 */
+      } 
+    
+
+    
 </style>
 
 

@@ -2,10 +2,520 @@
 {% load static %}
 
 {% block content %}
-<h2>게시글 수정</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-success">수정</button>
-</form>
+<div class="container">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Location Field -->
+        <div class="location-bar">
+            {{ form.location }}
+            <img src="{% static 'images/공개-전체공개.png' %}" class="access-btn" alt="전체공개" width="120px">
+        </div>
+
+        <!-- Title Field -->
+        <div class="input-section">
+            {{ form.title }}
+            <button class="store-btn">임시저장</button>
+            <button class="count-store-btn">0</button>
+            <button type="submit" class="btn btn-primary publish-btn btn-success">수정</button>
+        </div>
+
+        <!-- Rating and Text Editor -->
+        <div class="text_rating">
+            <div class="left-buttons" id="text-rating-btn">
+                <button id="bold-btn"><img src="{% static 'images/text-bold.png' %}" width="30px"></button>
+                <button id="underline-btn"><img src="{% static 'images/text-line.png' %}" width="30px"></button>
+                <button id="center-align-btn"><img src="{% static 'images/text-array.png' %}" width="30px"></button>
+            </div> 
+
+            <div id="star-rating" class="star-rating right-buttons">
+                {% for i in "123" %}
+                    <span class="star{% if i <= form.instance.rating|stringformat:"i" %} selected{% endif %}" data-value="{{ i }}">★</span>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="id_rating" name="rating" value="{{ form.instance.rating }}">
+        </div>
+        <!-- Content Field -->
+        <div class="content-container">
+            <div id="editable-text" contenteditable="true" class="form-control" style="min-height: 200px;">
+                {{ form.content.value|default:"" | safe }}
+            </div>
+            <textarea name="content" id="id_content" style="display:none;">{{ form.content.value }}</textarea>
+        </div>
+
+        <!-- Tags Section -->
+        <div class="bottom-bar">
+            <div class="left-buttons" id="tag-btn">
+                {% for tag in form.tags.value %}
+                    <button class="tag-button">{{ tag }}</button>
+                {% endfor %}
+                <button id="add-tag-btn">+ 추가</button>
+            </div>
+            
+            <!-- Tag Modal -->
+            <div id="tag-modal" class="tag-modal">
+                <div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2>태그 추가</h2>
+                    <input type="text" id="new-tag" placeholder="태그를 입력하세요">
+                    <button id="confirm-tag-btn">확인</button>
+                </div>
+            </div>
+
+            <div class="right-buttons">
+                <button class="add-lbtn">
+                    <img src="{% static 'images/add_locate.png' %}" alt="위치 선택 버튼" width="50">
+                </button>
+                <button type="button" class="add-pbtn">
+                    <img src="{% static 'images/add_pic.png' %}" alt="사진 선택 버튼" width="50">
+                </button>
+            </div>
+            
+            <!-- 숨겨진 파일 입력 필드 -->
+            <input type="file" id="id_image_upload" accept="image/*" style="display: none;">
+
+            
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript for interactivity -->
+<script>
+    
+    // 전체공개 이미지 버튼튼
+    const images = [
+    "{% static 'images/공개-전체공개.png' %}",
+    "{% static 'images/공개-친구공개.png' %}",
+    "{% static 'images/공개-나만공개.png' %}"
+    ];
+
+    let currentImageIndex = 0;
+
+    const accessButton = document.querySelector('.access-btn');
+
+
+    accessButton.addEventListener('click', () => {
+
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    accessButton.src = images[currentImageIndex];
+    });
+
+    // 글자 굵게 버튼
+    document.getElementById('bold-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        document.execCommand('bold');
+    });
+
+    // 밑줄 버튼
+    document.getElementById('underline-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        document.execCommand('underline');
+    });
+
+    // 가운데 정렬 버튼
+    let isCentered = false; // 상태 추적
+    document.getElementById('center-align-btn').addEventListener('click', (event) => {
+        event.preventDefault(); // 기본 동작 막기
+        if (isCentered) {
+            document.execCommand('justifyLeft');
+        } else {
+            document.execCommand('justifyCenter');
+        }
+        isCentered = !isCentered;
+    });
+
+    // 스타일 고정: contenteditable 영역의 p 태그나 div 태그에 적용
+    const editableText = document.getElementById('editable-text');
+    const hiddenTextarea = document.getElementById('id_content');
+
+    // HTML을 안전하게 정리하는 함수
+    function sanitizeHTML(html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // 허용된 태그만 유지
+        const allowedTags = ['b', 'u', 'i', 'br', 'div', 'p'];
+        tempDiv.querySelectorAll('*').forEach(el => {
+            if (!allowedTags.includes(el.tagName.toLowerCase())) {
+                el.replaceWith(el.innerText); // 허용되지 않은 태그는 텍스트로 변환
+            }
+        });
+
+        // 엔터키 처리: <br>태그를 추가하여 줄바꿈 반영
+        let sanitizedHTML = tempDiv.innerHTML.replace(/&nbsp;/g, ' ').replace(/<div>/g, '<br>').replace(/<\/div>/g, '');
+        return sanitizedHTML;
+    }
+
+    // contenteditable의 변경 사항을 textarea로 동기화
+    editableText.addEventListener('input', function () {
+        hiddenTextarea.value = sanitizeHTML(editableText.innerHTML);
+    });
+
+
+    // 별점 
+    const stars = document.querySelectorAll('#star-rating .star');
+    const ratingInput = document.getElementById('id_rating');
+
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            star.classList.toggle('selected', index < rating);
+        });
+    }
+
+    stars.forEach((star, index) => {
+        star.addEventListener('click', function() {
+            const selectedRating = index + 1;
+            // 선택한 별을 다시 클릭하면 해제
+            if (parseInt(ratingInput.value) === selectedRating) {
+                ratingInput.value = 0; // 해제
+                updateStars(0);
+            } else {
+                ratingInput.value = selectedRating;
+                updateStars(selectedRating);
+            }
+        });
+    });
+
+
+    // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
+    document.querySelector('.add-pbtn').addEventListener('click', function() {
+        document.getElementById('id_image_upload').click();
+    });
+
+    // 파일이 선택되면 contenteditable 영역에 이미지 삽입 및 textarea에 파일 저장
+    document.getElementById('id_image_upload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // contenteditable 영역에 이미지 삽입
+                const editableText = document.getElementById('editable-text');
+                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto; margin-top: 10px;">`;
+                editableText.innerHTML += imgTag; // 이미지 추가
+                
+                // hidden textarea에 이미지 파일 URL 저장
+                const imageInput = document.getElementById('id_content');
+                imageInput.value = editableText.innerHTML; // <textarea>에 콘텐츠 삽입
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+        // 글자 스타일 적용 시 이미지가 사라지지 않도록 보호
+        document.getElementById('editable-text').addEventListener('input', function(event) {
+            const editableText = document.getElementById('editable-text');
+            const imageInput = document.getElementById('id_content');
+            imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
+        });
+
+</script>
+
+
+<style>
+    .body{
+        width:100%;
+        height:100%;
+    }
+    .container {
+        width: 90%;
+        height:100%;
+        max-width:1400px;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+    }
+    .location-bar {
+        display: flex; /* 플렉스박스 사용 */
+        align-items: center; /* 세로 가운데 정렬 */
+        gap: 10px; /* input과 img 간격 */
+    }
+    .form-control {
+        display: inline-block; /* 한 줄 배치 */
+        cursor: pointer;
+    }
+    #id_location{
+        background-color: #D9D9D9;
+        opacity: 0.5;
+        color: #333;
+        padding: 8px 15px;
+        width: 350px; /* 원하는 너비 */
+        height: 40px; /* 원하는 높이 */
+        border-radius: 10px;
+        border: none;
+    }
+    .location-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .access-btn {
+        cursor: pointer;
+        margin-left: 15px;
+    }
+    .access-btn:hover{
+        transform: scale(1.01);
+    }
+    
+        
+    .input-section {
+        display: flex;
+        align-items: center;
+        margin-top: 10px; 
+    }
+
+    .input-section button:hover{
+        transform: scale(1.01);
+    }
+
+    #id_title {
+        flex: 1;
+        background-color: #F9F8EB;
+        padding: 10px;
+        border: solid 1px #508344;
+        border-radius: 20px;
+        height: 45px;
+
+    }
+
+    .store-btn {
+        background-color: #D9D9D9 ;
+        opacity: 0.5;
+        color: #333;
+        padding: 10px;
+        height: 45px;
+        width: 90px;
+        margin-left: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .count-store-btn {
+        background-color: #D9D9D9 ;
+        opacity: 0.5;
+        color: #333;
+        height: 45px;
+        width: 50px;
+        padding: 10px;
+        margin-left: 10px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .publish-btn {
+        background: linear-gradient(to bottom, #508344, #759C6B);
+        color: white;
+        font-size: 17px;
+        height: 45px;
+        width: 110px;
+        padding: 8px 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+    
+        
+    .text_rating {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .text_rating .left-buttons,
+    .text_rating .right-buttons {
+        display: flex;
+    }
+
+    .text_rating .left-buttons button{
+        padding: 10px 10px 5px 10px;
+    }
+    .text_rating .left-buttons button,
+    .text_rating .right-buttons button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .text_rating .left-buttons button img,
+    .text_rating .right-buttons button img {
+        width: 30px;
+        height: auto;
+    }
+
+    .star {
+        font-size: 2rem;
+        cursor: pointer;
+        color: gray;
+        transition: color 0.2s ease-in-out;
+    }
+    .star.selected {
+        color: gold;
+    }
+    .star-rating {
+        display: flex;
+        gap: 5px;
+    }
+
+    #editable-text{
+        width: 100%;
+        height: 330px;
+        padding: 15px;
+        background-color: #F9F8EB;
+        border: solid 1px #508344;
+        border-radius: 15px;
+        margin-top: 10px;
+        resize: none;
+        font-size: 14px;
+    }
+    
+
+    .bottom-bar {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+    }
+    
+    
+    .bottom-bar .left-buttons {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .bottom-bar .right-buttons {
+        display: flex;
+        margin-left: auto;
+    }
+    
+    .bottom-bar button, .add-btn {
+        background-color: #D9D9D9;
+        opacity: 0.5;
+        color: #333;
+        padding: 6px 10px; 
+        margin-left: 8px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 0;
+    }
+    
+    .bottom-bar .add-lbtn,
+    .bottom-bar .add-pbtn {
+        border: none;
+        background: none;
+        opacity: 100%;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+    
+
+    .tag-btn {
+        display: inline-block;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 15px;
+        background-color: #ccc;
+        cursor: pointer;
+        color: white;
+    }
+    .tag-btn.selected {
+        background-color: green;
+    }
+
+
+    /* 모달 배경 */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      /* 모달 내용 */
+      .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        width: 300px;
+      }
+      
+      .modal-content button {
+        margin: 10px;
+        padding: 10px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+      }
+      
+      #saveButton { background-color: #58882b7d; color: black; }
+      #exitButton { background-color: #be2f22aa; color: black; }
+      #cancelButton { background-color: #ccc; color: black; }
+    
+    
+    
+    /* 모달 기본 스타일 */
+    #tag-modal {
+        display: none; /* 기본적으로 숨김 */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* 모달 콘텐츠 스타일 */
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 250px;
+        text-align: center;
+        font-size:20px;
+    }
+    #new-tag{
+        font-size:15px ;
+    }
+    /* 닫기 버튼 스타일 */
+    .close-btn {
+        color: #58882b7d;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 25px;
+    }
+    
+    #confirm-tag-btn { 
+        background-color: #58882b7d; 
+        color: black; 
+        font-size: 16px;
+    }
+    
+    /* contenteditable 영역 스타일 */
+     [contenteditable="true"] {
+        width: 100%; /* 원하는 너비 설정 */
+        height: 330px; /* 원하는 높이 설정 (필요에 따라 조정) */
+        overflow-y: auto; /* 세로 스크롤이 필요할 때 활성화 */
+      } 
+    
+
+    
+</style>
+
+
 {% endblock %}
