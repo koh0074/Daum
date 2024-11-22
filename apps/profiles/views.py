@@ -115,13 +115,18 @@ def friend_profile(request, username):
     ).exclude(id=friend.id)  # 자기 자신을 제외
     friends_count = friends_list.count()
 
+    # 기본 프로필 이미지 설정
+    profile_image = friend.profile.image.url if friend.profile.image else '/static/images/profile_normal.png'
+
     return render(request, 'profiles/friend_profile.html', {
         'friend': friend,
         'posts': posts,
         'is_friend': is_friend,
         'friends_count': friends_count,
-        'friends_list': friends_list
+        'friends_list': friends_list,
+        'profile_image': profile_image,  # 기본 이미지 경로 추가
     })
+
 
 @login_required
 def delete_friend(request, username):

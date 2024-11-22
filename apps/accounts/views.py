@@ -87,9 +87,9 @@ def send_friend_request(request, user_id):
     to_user = get_object_or_404(User, id=user_id)
     # 이미 친구 요청이 있는지 확인
     if FriendRequest.objects.filter(from_user=request.user, to_user=to_user).exists():
-        return redirect('accounts:friends_list')
+        return redirect('posts:main')
     FriendRequest.objects.create(from_user=request.user, to_user=to_user)
-    return redirect('accounts:friends_list')
+    return redirect('posts:main')
 
 
 

@@ -1,225 +1,636 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'logo.png' %}" type="image/png">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <main>
+        <!-- 헤더 -->
+        <div class="menu-bar">
+            <div class="menu-left">
+                <div class="dropdown">
+                    <h4>전체보기</h4>
+                    <div class="dropdown-content" style="left: 150%">
+                        <a href="{% url 'places:festival_list' %}">지역축제 정보</a>
+                        <a href="{% url 'places:travel_list' %}">국내 여행지 정보</a>
+                        <a href="{% url 'posts:post_list' %}">남의 여행일기</a>
+                        <a href="{% url 'posts:friends_posts' %}">친구의 여행일기</a>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <h4>친구추가</h4>
+                    <div class="dropdown-content search-box" style="left: 150%">
+                        <form id="friend-search-form" method="post" action="{% url 'accounts:search_user' %}">
+                            {% csrf_token %}
+                            <label for="friend-search-input" style="color: white; font-weight: bold;">아이디</label>
+                            <input type="text" id="friend-search-input" name="user_id" placeholder="친구 검색" class="search-input" required>
+                            <button type="submit" class="btn btn-primary mt-2">검색</button>
+                        </form>
+                
+                        <!-- 검색 결과 표시 영역 -->
+                        <div id="search-result" class="mt-3">
+                            <div class="dropdown-menu friend-search-result" id="search-result-dropdown" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'places:bookmarked_festivals' %}" class="h-booktravel">찜한 여행</a>
+            </div>
+            <div class="icons">
+                <a href="{% url 'posts:post_create' %}">
+                    <img src="{% static 'images/글쓰기-평소.png' %}" id="pen" alt="Edit">
+                </a>
+                <!-- 친구 요청 알림 드롭다운 -->
+            <span class="menu-item dropdown">
+                <img src="{% static 'images/알림-평소.png' %}" id="bell" alt="Notifications" onclick="toggleRequests()">
+                <div class="dropdown-content friend-requests" id="friend-requests-dropdown" style="display: none;">
+                    <h4>친구 요청</h4>
+                    <div id="friend-requests-container">
+                        <!-- AJAX로 친구 요청 목록을 가져와서 표시할 부분 -->
+                    </div>
+                </div>
+            </span>
+                <!-- 오른쪽 상단 드롭다운 메뉴 -->
+            <div class="dropdown">
+                
+                {% if user.is_authenticated %}
+                    <!-- 로그인된 사용자의 정보 표시 -->
+                    <a href="{% url 'profiles:profile_main' %}"><img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3 h-base-profileImg" alt="프로필 사진"></a>
+                    <div class="dropdown-content">
+                        <p>닉네임: {{ user.nickname }}</p>
+                        <p>아이디: {{ user.username }}</p>
+                        <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">로그아웃</a>
+                    </div>
+                {% else %}
+                    <!-- 로그인 폼 표시 -->
+                    <span class="dropdown-button login-button">로그인</span>
+                    <div class="dropdown-content">
+                        <form method="post" action="{% url 'accounts:login' %}">
+                            {% csrf_token %}
+                            <h3>로그인</h3>
+                            <label for="username">아이디</label>
+                            <input type="text" id="username" name="username" required>
 
-{% block title %}🧳여행 다움🧳{% endblock %}
+                            <label for="password">비밀번호</label>
+                            <input type="password" id="password" name="password" required>
 
-{% block content %}
-<div class="container mt-5">
-    <!-- 검색창 -->
-    <div class="mb-4">
-        <form method="get" action="{% url 'places:search_results' %}" class="m-search">
-            <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
-            <button type="submit" class="btn btn-primary mt-2"><img src="{% static 'images/검색버튼.png' %}" alt="검색 버튼" id="searchButton"></button>
-        </form>
+                            <button type="submit" class="btn btn-primary">로그인</button>
+                        </form>
+                        <a href="{% url 'accounts:signup' %}">
+                            <button class="btn btn-secondary signup-button">회원가입</button>
+                        </a>
+                    </div>
+
+                {% endif %}
+            </div>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+
         
-    </div>
+        <div class="container">
+            <!-- 로고와 검색창을 묶는 부모 div -->
+            <div class="logo-search-wrapper">
+                <!-- 로고 이미지 -->
+                <div class="logo-container">
+                    <img class="LAST" src="{% static 'images/여행다움_로고.png' %}" alt="logo" width="400px" height="auto">
+                </div>
+                
+                <!-- 검색창 -->
+                <div class="search-container">
+                    <form method="get" action="{% url 'places:search_results' %}" class="search-bar">
+                        <div class="intheschbar">
+                            <input type="text" name="query" class="search-bar-input" placeholder="검색어를 입력하세요" required>
+                            <button type="submit" class="sch-btn">
+                                <img src="{% static 'images/검색버튼.png' %}" alt="검색 버튼" id="searchButton">
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+</body>
+</html>
 
-    <!-- 탭 버튼들 -->
-    <ul class="nav nav-tabs" id="mainTabs">
-        <li class="nav-item">
-            <a class="nav-link active" data-tab="festivals" href="#">지역 축제 정보</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-tab="travel_destinations" href="#">국내 여행지 정보</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-tab="others_posts" href="#">남의 여행일지</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-tab="friends_posts" href="#">친구의 여행일지</a>
-        </li>
-    </ul>
 
-    <!-- 탭 콘텐츠를 표시할 영역 -->
-    <div id="tabContent" class="mt-4">
-        <div class="carousel-content"></div>
-    </div>
-</div>
 
+
+<!--스크립트-->
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const tabs = document.querySelectorAll('#mainTabs .nav-link');
-    const tabContentWrapper = document.querySelector('.carousel-wrapper'); // Wrapper
-    const tabContent = document.querySelector('.carousel-content'); // Slider content
+    document.getElementById('friend-search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
 
-    function loadTabContent(tab) {
-        fetch(`/places/load_tab/${tab}/`)
-            .then(response => response.text())
-            .then(data => {
-                // 원본 콘텐츠 추가
-                tabContent.innerHTML = data;
+        const input = document.getElementById('friend-search-input');
+        const resultDiv = document.getElementById('search-result');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // CSRF 토큰 추가
 
-                // 콘텐츠 복제
-                const clonedContent = tabContent.cloneNode(true);
-                tabContentWrapper.appendChild(clonedContent); // 복제된 콘텐츠 추가
-            })
-            .catch(error => console.error('Error loading tab content:', error));
-    }
+        fetch("{% url 'accounts:search_user' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: new URLSearchParams({ user_id: input.value })
+        })
+        .then(response => response.json())
+        .then(data => {
+            resultDiv.innerHTML = '';
+            if (data.error) {
+                resultDiv.innerHTML = `<p class="text-danger">${data.error}</p>`;
+            } else {
+                let profileLink = `<a href="/profiles/${data.username}/" class="btn-profile">프로필 보기</a>`;
 
-    // 처음 로딩 시 첫 번째 탭 콘텐츠 로드
-    loadTabContent('festivals');
+                let friendRequestButton = data.is_friend ? '' : `
+                    <form method="post" action="/accounts/send_request/${data.user_id}/">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success mt-2">친구 요청 보내기</button>
+                    </form>
+                `;
 
-    // 탭 클릭 시 AJAX로 콘텐츠 로드
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function (event) {
-            event.preventDefault();
-            tabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            const tabName = this.getAttribute('data-tab');
-            loadTabContent(tabName);
+                resultDiv.innerHTML = `
+                    <p>< 아이디 : ${data.username} ></p>
+                    ${profileLink}
+                    ${friendRequestButton}
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultDiv.innerHTML = '<p class="text-danger">오류가 발생했습니다. 다시 시도해주세요.</p>';
         });
     });
-});
 
+    function toggleRequests() {
+        const dropdown = document.getElementById('friend-requests-dropdown');
+        const isDropdownOpen = dropdown.style.display === 'block';
+        dropdown.style.display = isDropdownOpen ? 'none' : 'block';
+
+        if (!isDropdownOpen) {
+            loadFriendRequests();
+        }
+    }
+
+    function loadFriendRequests() {
+        fetch("{% url 'accounts:get_friend_requests' %}")
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('friend-requests-container');
+            container.innerHTML = '';
+
+            if (data.requests.length === 0) {
+                container.innerHTML = '<p>받은 친구 요청이 없습니다.</p>';
+            } else {
+                data.requests.forEach(req => {
+                    const requestElement = document.createElement('div');
+                    requestElement.classList.add('friend-request-item');
+                    requestElement.innerHTML = `
+                        <p>${req.from_user_nickname} (@${req.from_user})님의 친구 요청</p>
+                        <button class="btn btn-success" onclick="handleRequest(${req.id}, 'accept')">수락</button>
+                        <button class="btn btn-danger" onclick="handleRequest(${req.id}, 'decline')">거절</button>
+                    `;
+                    container.appendChild(requestElement);
+                });
+            }
+        });
+    }
+
+    function handleRequest(requestId, action) {
+        const url = action === 'accept'
+            ? "{% url 'accounts:accept_friend_request' 0 %}".replace('0', requestId)
+            : "{% url 'accounts:decline_friend_request' 0 %}".replace('0', requestId);
+
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'accepted' || data.status === 'declined') {
+                loadFriendRequests();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFriendRequests();
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('friend-requests-dropdown');
+            const bellIcon = document.getElementById('bell');
+
+            if (dropdown.style.display === 'block' && !dropdown.contains(event.target) && event.target !== bellIcon) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
 </script>
 
+
 <style>
-    .mt-5 {
-    margin-top: 7rem !important;
+    #pen {
+        transition: content 0.2s ease-in-out; /* content에 대한 부드러운 전환 */
+        margin-right: 13px; /* 오른쪽 간격 */
     }
-    .h-m-header-title {
-    font-size: 28px;
-    font-weight: bold;
-    color: #508344;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.m-search {
-    position: relative;
-        margin-top: 25px; /* 로고와의 간격을 맞추기 위해 margin-top을 적당히 설정 */
+
+    #pen:hover {
+        content: url({% static 'images/글쓰기-호버링.png' %}); /* 호버 시 이미지 변경 */
+    }
+
+    #bell {
+        transition: content 0.2s ease-in-out; /* content에 대한 부드러운 전환 */
+    }
+
+    #bell:hover {
+        content: url({% static 'images/알림-호버링.png' %}); /* 호버 시 이미지 변경 */
+    }
+
+    .h-logo {
         display: flex;
         align-items: center;
-        width: 70%;
-        max-width: 600px;
-        margin:auto;
         justify-content: center;
+        margin-left: -8rem;
     }
 
-    .mt-5 {
-        margin-top: unset;
-        margin-bottom: 10rem;
+    .h-profile-border {
+        border: 3px solid #508344; /* 테두리 색과 두께 설정 */
+        border-radius: 50%;       /* 완전한 원 형태 */
+        overflow: hidden;         /* 원을 넘어가는 부분 제거 */
     }
-    /* 검색창 */
-    .btn-primary {
-    --bs-btn-bg: unset; 
-    --bs-btn-border-color: unset;
+
+    .h-profile-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
     }
-form input[type="text"] {
-    width: 100%;
-        padding: 10px 40px 10px 10px;
+
+    .h-header-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: #508344;
+        display: flex;
+        align-items: center;
+    }
+
+    .h-footer {
+        text-align: right;
+        font-size: 15px;
+        color: #aaa;
+    }
+
+    /* 오른쪽 상단 드롭다운 스타일 */
+    .dropdown {
+        position: relative; /* 부모 요소 기준으로 위치 설정 */
+    }
+
+    .dropdown-content {
+        color: white;
+        font-weight: bold;
+        display: none; /* 기본적으로 숨김 */
+        position: absolute; /* 부모 요소를 기준으로 위치 */
+        top: 100%; /* 버튼 바로 아래에 위치 */
+        left: 0%; /* 부모 요소의 중앙으로 이동 */
+        transform: translateX(-50%); /* 가운데 정렬 */
+        background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+        border: 1px solid #ddd; /* 경계선 */
+        border-radius: 10px; /* 둥근 모서리 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+        z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+        padding: 20px; /* 내부 여백 */
+        min-width: 230px; /* 최소 너비 설정 */
+    }
+
+    .dropdown-content a {
+        color: white; /* 기본 글씨 색을 흰색으로 설정 */
+        padding: 12px;
+        display: block;
+        text-decoration: none;
+    }
+
+    .dropdown-content a:hover {
+        color: #2a4d1f;
+    }
+
+    /* 검색 버튼이 포커스를 받을 때 스타일 변경 */
+    .dropdown-content button:focus {
+        outline: none; /* 기본 포커스 스타일 제거 */
+        background-color: #508344; /* 포커스 상태에서 버튼 색상 설정 */
+        border: none; /* 포커스 상태에서 테두리 제거 */
+    }
+
+
+    .h-l-dropdown-content {
+        display: none; /* 기본적으로 숨김 */
+        position: absolute; /* 부모 요소를 기준으로 위치 */
+        top: 100%; /* 버튼 바로 아래에 위치 */
+        left: -170%; /* 부모 요소의 중앙으로 이동 */
+        transform: translateX(-50%); /* 가운데 정렬 */
+        background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+        border: 1px solid #ddd; /* 경계선 */
+        border-radius: 10px; /* 둥근 모서리 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+        z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+        padding: 20px; /* 내부 여백 */
+        min-width: 250px; /* 최소 너비 설정 */
+    }
+
+    /* 드롭다운 버튼과 hover 효과 */
+    .dropdown:hover .dropdown-content {
+        display: block; /* 호버 시 드롭다운 표시 */
+    }
+
+    /* 로그인 버튼 스타일 */
+    .dropdown-button {
+        cursor: pointer;
+        display: inline-block;
         font-size: 16px;
-        border: 2px solid #508344;
-        border-radius: 30px;
-        box-sizing: border-box;
+        padding: 10px;
+        color: #508344;
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        background: none;
+    }
+
+    /* 로그인 폼 스타일 */
+    .dropdown-content form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dropdown-content input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .dropdown-content button {
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        color: white;
+        background-color: #508344;
+        cursor: pointer;
+    }
+
+    .dropdown-content button:hover {
+        background-color: #3b873e; /* 어두운 초록색 */
+    }
+
+    /* 로그인 버튼 스타일 */
+    .dropdown-content .login-button {
+        background-color: #508344; /* 초록색 배경 */
+        color: white;
+        padding: 10px 20px; /* 동일한 크기 */
+        border-radius: 5px;
+        width: 100%; /* 버튼 너비 100% */
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 로그인 버튼 호버 상태 */
+    .dropdown-content .login-button:hover {
+        background-color: #3b873e; /* 어두운 초록색 */
+    }
+
+    /* 회원가입 버튼 스타일 */
+    .signup-button {
+        cursor: pointer;
+        display: inline-block;
+        font-size: 16px;
+        padding: 10px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        background-color: #2d8032; /* 진초록색 배경 */
+        width: 100%; /* 버튼 너비 100%로 설정 */
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 회원가입 버튼 호버 상태 */
+    .signup-button:hover {
+        background-color: #1e5d22; /* 어두운 진초록색 */
+    }
+
+    /* 로그인 폼 내 버튼의 배경색과 크기 수정 */
+    .dropdown-content .login-button {
+        background-color: #508344; /* 기본 초록색 배경 */
+        border-radius: 5px;
+        padding: 10px 20px; /* 여백을 조금 더 줌 */
+    }
+
+   /* 프로필 보기 버튼 스타일 */
+    .btn-profile {
+        background-color: #508344; /* 기본 초록색 */
+        color: white; /* 글씨 색은 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none; /* 링크 밑줄 제거 */
+        width: 100%; /* 버튼 너비를 100%로 설정 */
+    }
+
+    /* 호버 상태에서 배경색을 연한 그레이로 바꾸고 글씨 색은 흰색으로 유지 */
+    .btn-profile:hover {
+        background-color: #a8a8a8 !important; /* 호버 시 연한 그레이색 배경 */
+        color: white !important; /* 호버 시 글씨 색은 흰색으로 유지 */
+    }
+
+    /* 친구 요청 보내기 버튼 기본 스타일 */
+    .btn-success {
+        background-color: #508344; /* 기본 초록색 */
+        color: white; /* 글씨 색은 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none; /* 링크 밑줄 제거 */
+        border: none; /* 기본 테두리 제거 */
+    }
+
+    /* 친구 요청 보내기 버튼 호버 상태 */
+    .btn-success:hover {
+        background-color: #a8a8a8 !important; /* 호버 시 연한 회색 배경 */
+        color: white !important; /* 호버 시 글씨 색은 흰색으로 유지 */
+    }
+
+    
+    .friend-requests {
+        color: white; /* 드롭다운 리스트 텍스트 기본 색상 흰색 */
+    }
+
+    .friend-requests h4 {
+        color: white; /* 텍스트를 흰색으로 설정 */
+        font-weight: bold; /* 텍스트 강조 */
+        margin-bottom: 10px; /* 약간의 여백 추가 */
+        pointer-events: none; /* 호버 및 클릭 이벤트를 무시하도록 설정 */
+    }
+
+
+    .friend-requests p {
+        color: white; /* 드롭다운 내 모든 문단 텍스트를 흰색으로 */
+    }
+
+    .friend-requests button {
+        color: white; /* 버튼 텍스트 색상 */
+        background-color: #508344; /* 버튼 배경색 */
+        border: none; /* 테두리 제거 */
+        border-radius: 5px; /* 둥근 모서리 */
+        padding: 10px 20px; /* 버튼 여백 */
+        font-weight: bold; /* 글씨 굵기 설정 */
+    }
+
+    .friend-requests button:hover {
+        background-color: #a8a8a8; /* 버튼 호버 시 배경색 */
+    }
+
+    .friend-request-item p {
+        font-size: 14px; /* 글씨 크기를 14px로 줄임 */
+    }
+
+    /* 로그아웃 버튼 기본 색상 */
+    .dropdown-content .btn-secondary {
+        background-color: #508344; /* 진한 초록색 */
+        color: white; /* 텍스트 색상 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        width: 100%; /* 버튼 너비 100% */
+        text-align: center; /* 텍스트 중앙 정렬 */
+        border: none; /* 테두리 제거 */
+        cursor: pointer; /* 마우스 커서 변경 */
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 로그아웃 버튼 호버 상태 */
+    .dropdown-content .btn-secondary:hover {
+        background-color: #a8a8a8; /* 회색 배경 */
+        color: white; /* 텍스트 색상 흰색 유지 */
+    }
+
+    #password {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 25px; /* 모서리를 더 둥글게 */
+        font-size: 14px;
+    }
+
+    
+
+<style>
+    /* 기본 설정 */
+    @font-face {
+      font-family: 'SchoolSafeFont';
+      src: url('{%static "fonts/HakgyoansimYeohaengR.ttf" %}') format('truetype');
+    }
+    .container {
+
+    }
+    
+    .logo-search-wrapper {
+        position: fixed;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        top: 28%;
+        right: 1%;
+        width: 100%;
+    }
+
+    .LAST {
+        margin-bottom: 10px; /* 로고와 검색창 사이에 여백 추가 */
+        margin-left: 24px;
+    }
+
+    .search-container {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        max-width: 800px; /* 최대 너비 설정 */
+    }
+    .search-container input{
+        width: 350px;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 0px;
+        outline: none;
+    }
+    .search-bar {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        max-width: 800px; /* 최대 너비를 800px로 설정 */
+    }
+    
+    .intheschbar {
+        display: flex;
+        width: 100%;
+        height: 60px; /* 높이를 크게 설정 */
+        align-items: center; /* 버튼과 입력창 수직 정렬 */
+        border: 3px solid #508344; /* 테두리 두께와 색상 */
+        border-radius: 40px; /* 둥근 모서리 */
+        overflow: hidden; /* 경계 밖 요소 숨김 */
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-#searchButton {
-    position: absolute;
-    top: 10px;
-    right: 31px;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
+    }
+    
+    .search-bar-input {
+        flex: 1;
+        padding: 15px 20px; /* 더 큰 여백 */
+        font-size: 22px; /* 더 큰 폰트 */
+        border: none;
+        outline: none;
+        box-sizing: border-box;
+    }
+    
+    .sch-btn {
+        background: white;
+        border: none;
+        width: 60px; /* 버튼 크기 확대 */
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+    }
+    
+    #searchButton {
+        width: 30px; /* 버튼 아이콘 크기 확대 */
+        height: 30px;
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    #searchButton:hover {
+        transform: scale(1.2); /* 호버 시 확대 */
+        background:white;
     }
 
-form button {
-    background-color: #3b873e;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-form button:hover {
-    background-color: #2f6f31; /* 어두운 초록색 */
-}
-
-
-/* 탭 버튼 */
-.nav-tabs {
-    justify-content: center; /* 중앙 정렬 */
-    border-bottom: none; /* 기본 탭 경계선 제거 */
-    margin-bottom: 20px;
-}
-
-.nav-tabs .nav-link {
-    color: #3b873e;
-    background-color: #f8f8f8;
-    border: 1px solid #3b873e;
-    border-radius: 5px;
-    padding: 10px 15px;
-    margin: 0 5px;
-    font-size: 1rem;
-    text-align: center;
-}
-
-.nav-tabs .nav-link.active {
-    color: white;
-    background-color: #3b873e;
-    border: 1px solid #3b873e;
-}
-
-/* 콘텐츠 영역 */
-#tabContent {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap; /* 반응형 디자인 */
-    gap: 20px; /* 카드 간격 */
-}
-
-/* 카드 스타일 */
-.card {
-    border: 1px solid #3b873e;
-    border-radius: 10px;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: calc(25% - 20px); /* 4개의 카드 배치 */
-    text-align: center;
-    padding: 15px;
-}
-
-.card img {
-    width: 100%;
-    border-radius: 10px;
-}
-
-.card-title {
-    color: #3b873e;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-.carousel-wrapper {
-    overflow: hidden; /* 넘치는 부분 숨기기 */
-    width: 100%; /* 컨테이너 전체 너비 */
-    position: relative; /* 위치 설정 */
-    height: 300px; /* 슬라이더 높이 */
-}
-
-.carousel-content {
-    display: flex; /* 가로로 정렬 */
-    flex-wrap: nowrap; /* 줄바꿈 방지 */
-    gap: 10px; /* 카드 간 간격 */
-    animation: slide 20s linear infinite; /* 슬라이더 애니메이션, 속도 느리게 */
-}
-
-.card {
-    flex: 0 0 auto; /* 카드 크기 고정 */
-    width: 300px; /* 카드 너비 */
-    height: 100%; /* 카드 높이 */
-}
-
-@keyframes slide {
-    from {
-        transform: translateX(0); /* 시작 위치 */
+    /* 버튼 스타일 */
+    form button {
+        background: none;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
     }
-    to {
-        transform: translateX(-50%); /* 슬라이더가 절반까지 이동 */
+
+    form button:hover {
+        background:white;
+        transform: scale(1.05);
     }
-}
 </style>
-{% endblock %}
+

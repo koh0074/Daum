@@ -40,7 +40,7 @@
                     </div>
                 </div>
                 
-                <a href="{% url 'places:bookmarked_festivals' %}" class="h-booktravel">찜한 여행</a>
+                <a href="{% url 'places:bookmarked_festivals' %}" class="h-booktravel">찜한 축제</a>
             </div>
             <div class="h-logo">
                 <a href="{% url 'posts:main' %}" id="h-home" class="h-header-title"><img src="{% static 'images/여행다움_로고.png' %}" alt="logo" width="237.76" height="68"></a>
@@ -70,8 +70,11 @@
                         <a href="{% url 'accounts:logout' %}" class="btn btn-secondary">로그아웃</a>
                     </div>
                 {% else %}
+                                <!-- 로그인되지 않았을 때 기본 이미지 표시 -->
+                    <a href="{% url 'accounts:login' %}">
+                        <img src="{% static 'images/profile_normal.png' %}" class="rounded-circle profile-img me-3 h-base-profileImg" alt="기본 프로필 사진">
+                    </a>
                     <!-- 로그인 폼 표시 -->
-                    <span class="dropdown-button login-button">로그인</span>
                     <div class="dropdown-content">
                         <form method="post" action="{% url 'accounts:login' %}">
                             {% csrf_token %}

@@ -14,7 +14,7 @@
     </div>
 
     <!-- 정렬 기준 선택 드롭다운 메뉴 -->
-    <div class="mb-4">
+    <div class="mb-4 h-order">
         <form method="get" class="d-inline-block">
             <label for="sort" class="form-label">정렬 기준:</label>
             <select name="sort" id="sort" class="form-select" onchange="this.form.submit()">
@@ -137,6 +137,10 @@
 
 <!-- 스타일 -->
 <style>
+    .h-order {
+        display: flex;
+        justify-content: flex-end;
+    }
     .header-text {
         display: flex;
         align-items: center;

@@ -15,15 +15,13 @@
             <form method="get" action="{% url 'places:search_results' %}" class="m-search">
                 <div class="input-container">
                     <input type="text" name="query" class="form-control" placeholder="검색어를 입력하세요" required>
-                    <button type="submit" class="btn btn-primary mt-2">
-                        <img src="{% static 'images/검색버튼.png' %}" alt="검색 버튼" id="searchButton">
+                    <button type="submit" class="search-button">
+                        <img src="{% static 'images/검색버튼.png' %}" alt="검색 버튼">
                     </button>
                 </div>
             </form>
         </div>
     </div>
-
-    
 
     <hr>
 
@@ -208,8 +206,6 @@
         <div class="text-content">
             <!-- 게시글 제목 -->
             <h5>{{ post.title }}</h5>
-            <!-- 게시글 내용 (30단어로 축소) -->
-            <p>{{ post.content|truncatewords:30 }}</p>
             <!-- 작성자 및 작성일 -->
             <p class="post-meta">
                 작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}
@@ -278,6 +274,43 @@
         width: 300px;
     }
 
+    .input-container input {
+        width: 100%;
+        padding: 10px 15px;
+        font-size: 16px;
+        border: 2px solid #508344;
+        border-radius: 30px;
+        box-sizing: border-box;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 검색 버튼 */
+    .search-button {
+        position: absolute;
+        top: 50%; /* 버튼을 검색창의 중앙으로 정렬 */
+        right: 10px; /* 검색창 오른쪽 끝에 배치 */
+        transform: translateY(-50%); /* 세로 중앙 정렬 */
+        background: none !important; /* 버튼 배경 제거 */
+        border: none; /* 버튼 테두리 제거 */
+        padding: 0;
+        cursor: pointer;
+        width: 30px; /* 버튼 크기 조정 */
+        height: 30px; /* 버튼 크기 조정 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .search-button img {
+        width: 100%; /* 버튼 내부 이미지를 버튼 크기에 맞춤 */
+        height: auto;
+    }
+
+    .search-button:focus {
+        outline: none ; /* 기본 포커스 스타일 제거 */
+        box-shadow: none !important; /* 추가된 강조 효과 제거 */
+    }
+
     form input[type="text"] {
         width: 300px;
         padding: 10px 40px 10px 10px;
@@ -288,16 +321,16 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    
 
     #searchButton {
-        position: absolute;
-        top: 10px;
-        right: 10%;
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-    }
+    position: absolute;
+    top: 37%; /* 입력 필드의 세로 중앙 */
+    right: 10px; /* 오른쪽 끝 고정 */
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
 
     /* 정렬 기준 드롭다운 메뉴 */
     form select {
@@ -395,6 +428,26 @@
         height: 35px;
         object-fit: contain;
     }
+
+    /* 기본 outline 제거 */
+    input:focus,
+    button:focus,
+    #searchButton:focus {
+        outline: none; /* 기본 포커스 테두리 제거 */
+    }
+
+    /* 커스터마이즈된 포커스 스타일 (접근성을 고려한 대체 스타일) */
+    input:focus {
+        border: 2px solid #4CAF50; /* 포커스 시 녹색 테두리 표시 */
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); /* 부드러운 강조 효과 */
+    }
+
+    button:focus,
+    #searchButton:focus {
+        outline: none; /* 기본 테두리 제거 */
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); /* 포커스 시 강조 효과 */
+    }
+
 
     /* 배경 고정 */
     body {

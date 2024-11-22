@@ -50,23 +50,21 @@
                         <button class="tag-button">{{ tag }}</button>
                     {% endif %}
                 {% endfor %}
-                <button id="add-tag-btn">+ 추가</button>
+                <!--<button id="add-tag-btn">+ 추가</button>-->
                 <input type="hidden" name="tags" id="selected-tags" 
                     value="{% for tag in form.tags.value %}{% if tag.strip %}{{ tag }},{% endif %}{% endfor %}">
             </div>        
-            <div class="form-group">
-                <label for="id_thumbnail_image">대표 이미지:</label>
-                {{ form.thumbnail_image }}
-            </div>
-            
+
             <div class="right-buttons">
-                <button class="add-lbtn">
-                    <img src="{% static 'images/add_locate.png' %}" alt="위치 선택 버튼" width="50">
-                </button>
+                <label class="add-thumbnail-label">
+                    <img src="{% static 'images/대표-수정.png' %}" alt="대표 이미지" width="50" id="thumbnail-preview">
+                    <input type="file" id="thumbnail-input" name="thumbnail_image" accept="image/*" style="display: none;">
+                </label>
                 <button type="button" class="add-pbtn">
                     <img src="{% static 'images/add_pic.png' %}" alt="사진 선택 버튼" width="50">
                 </button>
             </div>
+            
             
             <!-- 숨겨진 파일 입력 필드 -->
             <input type="file" id="id_image_upload" accept="image/*" style="display: none;">
@@ -220,11 +218,60 @@
             const imageInput = document.getElementById('id_content');
             imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
         });
+        document.getElementById('thumbnail-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('thumbnail-preview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('유효한 이미지 파일을 선택하세요.');
+            }
+        });
+
 
 </script>
 
 
 <style>
+    .add-thumbnail-label {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+}
+
+.add-thumbnail-label img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px; /* 필요 시 둥근 모서리 */
+    transition: transform 0.2s ease-in-out;
+}
+
+.add-thumbnail-label img:hover {
+    transform: scale(1.1); /* 호버 시 약간 확대 */
+}
+
+.add-pbtn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.add-pbtn img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
+}
+
+.add-pbtn img:hover {
+    transform: scale(1.1);
+}
+
     .body{
         width:100%;
         height:100%;
@@ -401,6 +448,8 @@
     .bottom-bar .right-buttons {
         display: flex;
         margin-left: auto;
+        justify-content: center;
+        align-items: center;
     }
     
     .bottom-bar button, .add-btn {
