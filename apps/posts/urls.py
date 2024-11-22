@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import main, post_list, post_create, post_update, post_delete
 from . import views
+from .views import main, post_list, post_create, post_update, post_delete, save_draft
+
 
 app_name = 'posts'
 
@@ -17,4 +19,5 @@ urlpatterns = [
     path('post/<int:post_id>/bookmark/', views.toggle_bookmark, name='toggle_bookmark'),
 
     path('friends/', views.friends_posts, name='friends_posts'),
+    path('save-draft/', views.save_draft, name='save_draft'),  # 이 부분 확인
 ]

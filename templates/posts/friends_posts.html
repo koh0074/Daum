@@ -1,41 +1,405 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container mt-5">
-    <h2>{{ title }}</h2>
-    <hr>
-    {% if posts %}
-        {% for post in posts %}
-        <div class="post-item">
-            <!-- 게시글 제목을 클릭하면 상세 페이지로 이동 -->
-            <h3>
-                <a href="{% url 'posts:post_detail' post.id %}">
-                    {{ post.title }}
-                </a>
-            </h3>
-            <p>{{ post.content|truncatewords:30 }}</p>
-            <p>작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}</p>
+    <!-- 헤더 텍스트 -->
+    <div class="header-text">
+        <span class="post-title">친구의 여행일지</span>
+        <span class="post-count">총 {{ posts.count }}건</span>
+    </div>
 
-            <!-- 찜 여부 표시 -->
-            {% if post.id in user_bookmarks %}
-                <p class="text-success">★ 내가 찜한 게시글</p>
-            {% else %}
-                <p class="text-muted">☆ 찜하지 않음</p>
-            {% endif %}
-            
-            {% if post.image %}
-                <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 100%; height: auto;">
-            {% endif %}
-            
-            <p>별점: 
-                {% for i in "123" %}
-                    <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+    <!-- 메인 그리드 -->
+    <div class="main-grid-container">
+        <button class="h-arrow-button left-arrow" onclick="scrollGrid(-1)">◀</button>
+        <div class="main-grid">
+            {% if posts %}
+                {% for post in posts %}
+                <div class="grid-item">
+                    <!-- 이미지가 있는 경우 출력 -->
+                    <div class="image-container">
+                        {% if post.thumbnail_image %}
+                            <img src="{{ post.thumbnail_image.url }}" alt="{{ post.title }}">
+                        {% else %}
+                            <img src="{% static 'images/no-thumbnail.png' %}" alt="이미지 없음">
+                        {% endif %}
+                    </div>
+
+                    <!-- 텍스트 콘텐츠 -->
+                    <div class="text-content">
+                        <!-- 게시글 제목 -->
+                        <h3 class="post-title">
+                            <a href="{% url 'posts:post_detail' post.id %}">{{ post.title }}</a>
+                        </h3>
+                        <!-- 작성자와 작성일 -->
+                        <p class="post-meta">
+                            작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}
+                        </p>
+                        <!-- 별점 표시 -->
+                        <p>별점: 
+                            {% for i in "123" %}
+                                <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+
+                    <!-- 북마크 버튼 -->
+                    <div class="like-section">
+                        <img src="{% static 'images/북마크-비워짐.png' %}" 
+                        class="like-btn" 
+                        alt="찜하기" 
+                        data-id="{{ post.id }}"
+                        data-url="{% url 'posts:toggle_bookmark' post.id %}"
+                        data-bookmarked="{% if post.id in user_bookmarks %}true{% else %}false{% endif %}">
+
+                    </div>
+                </div>
                 {% endfor %}
-            </p>
-            <hr>
+            {% else %}
+                <p>친구의 게시글이 없습니다.</p>
+            {% endif %}
         </div>
-        {% endfor %}
-    {% else %}
-        <p>친구의 게시글이 없습니다.</p>
-    {% endif %}
+        <button class="h-arrow-button right-arrow" onclick="scrollGrid(1)">▶</button>
+    </div>
+
+    <!-- 슬라이드 카운트 표시 -->
+    <div class="slide-count-container">
+        <span class="slide-count">1/11</span>
+    </div>
 </div>
+
+
+<!-- 스크립트 -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+        const likeButtons = document.querySelectorAll('.like-btn');
+        const grids = document.querySelector('.main-grid');
+        const leftArrow = document.querySelector('.left-arrow');
+        const rightArrow = document.querySelector('.right-arrow');
+        const slideCount = document.querySelector('.slide-count'); // 슬라이드 카운트 표시
+        const itemsPerPage = 3; // 한 페이지에 보여줄 그리드 항목 수 (1줄에 3개)
+        let currentSlide = 0; // 현재 슬라이드 상태
+        const posts = document.querySelectorAll('.grid-item'); // 모든 그리드 항목
+        const totalPosts = posts.length; // 총 포스트 개수
+        const totalPages = Math.ceil(totalPosts / itemsPerPage); // 총 페이지 수
+
+        // 슬라이드 페이지 카운트를 표시하는 함수
+        function updateSlideCount() {
+            const currentPage = Math.floor(currentSlide / itemsPerPage) + 1; // 현재 페이지 번호 (1부터 시작)
+            slideCount.textContent = `${currentPage}/${totalPages}`; // 슬라이드 페이지 표시
+        }
+
+        // 북마크 상태 반영
+        likeButtons.forEach(button => {
+            updateBookmarkIcon(button); // 초기 상태 반영
+
+            // 북마크 버튼 클릭 이벤트
+            button.addEventListener('click', () => {
+                toggleBookmark(button);
+            });
+        });
+
+        // 북마크 상태에 따라 아이콘을 업데이트하는 함수
+        function updateBookmarkIcon(button) {
+            const isBookmarked = button.getAttribute('data-bookmarked') === 'true';
+            button.src = isBookmarked 
+                ? "{% static 'images/북마크-채워짐.png' %}" 
+                : "{% static 'images/북마크-비워짐.png' %}";
+        }
+
+        async function toggleBookmark(button) {
+    const url = button.getAttribute('data-url'); // URL 확인
+    console.log("Bookmark URL:", url); // 디버깅용 로그
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    if (!url) {
+        console.error("Bookmark URL is not defined.");
+        return;
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            console.error('Failed to toggle bookmark');
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.is_bookmarked !== undefined) {
+            button.setAttribute('data-bookmarked', data.is_bookmarked ? 'true' : 'false');
+            button.src = data.is_bookmarked 
+                ? "{% static 'images/북마크-채워짐.png' %}" 
+                : "{% static 'images/북마크-비워짐.png' %}";
+        } else {
+            console.error('Unexpected server response:', data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+        // 슬라이드 그리드 업데이트
+        function updateGridRow() {
+            // 각 슬라이드에 맞는 3개 항목을 선택
+            const visiblePosts = Array.from(posts).slice(currentSlide, currentSlide + itemsPerPage);
+
+            // 그리드에 해당 항목만 보이도록 처리
+            grids.innerHTML = ''; // 기존 그리드 내용 초기화
+            visiblePosts.forEach(post => {
+                grids.appendChild(post); // 선택된 그리드 항목만 추가
+            });
+
+            // 페이지 번호 업데이트
+            updateSlideCount();
+
+            // 화살표 비활성화/활성화 처리
+            leftArrow.disabled = currentSlide === 0;
+            rightArrow.disabled = currentSlide + itemsPerPage >= posts.length;
+        }
+
+        // 왼쪽 화살표 클릭 이벤트
+        leftArrow.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide -= itemsPerPage;
+                updateGridRow(); // 그리드 업데이트
+            }
+        });
+
+        // 오른쪽 화살표 클릭 이벤트
+        rightArrow.addEventListener('click', () => {
+            if (currentSlide + itemsPerPage < totalPosts) {
+                currentSlide += itemsPerPage;
+                updateGridRow(); // 그리드 업데이트
+            }
+        });
+
+        // 초기 그리드 표시
+        updateGridRow();
+    });
+
+
+
+
+</script>
+
+
+<!-- 스타일 -->
+<style>
+    .h-arrow-button {
+        background-color: unset !important;
+        color: black;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: background-color -5.7s ease;
+    }
+    .post-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #508344;
+    }
+
+    .post-count {
+        font-size: 16px;
+        font-weight: normal;
+        color: #8b8b8b;
+        margin-left: 10px;
+        display: inline-block; /* 페이지 수가 표시될 때 간격을 조정 */
+        padding: 5px;
+    }
+
+
+    /* 메인 그리드 */
+    .main-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        padding: 30px;
+        overflow: hidden; /* 그리드 항목이 넘칠 경우 숨기기 */
+    }
+
+    .main-grid-container {
+        position: relative; /* 화살표 버튼을 그리드 내부에서 절대 위치로 배치할 수 있도록 */
+    }
+
+    .grid-item {
+        background-color: rgba(239, 236, 236, 0.551);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .grid-item img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block; /* 이미지 영역 확보 */
+    }
+
+    .grid-item .image-placeholder {
+        width: 100%;
+        height: 180px;
+        background-color: rgba(200, 200, 200, 0.3);
+        border-radius: 8px;
+    }
+
+    .grid-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 이미지 영역 */
+    .grid-item .image-container {
+        width: 100%;
+        height: 75%; /* 그리드 4/3 차지 */
+        overflow: hidden;
+        border-radius: 10px 10px 0 0; /* 위쪽 모서리 둥글게 */
+        background-color: #d9d9d9; /* 이미지 없을 때 배경색 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .grid-item .image-container img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+    }
+
+    .grid-item .image-container.no-image {
+        background-color: #f5f5f5; /* 이미지가 없을 때의 배경색 */
+    }
+
+    .grid-item .text-content {
+        padding: 15px;
+    }
+
+    .grid-item .text-content .post-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    }
+
+    .grid-item .text-content .post-title a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .grid-item .text-content .post-meta {
+        font-size: 14px;
+        color: #8b8b8b;
+        margin-top: 5px;
+    }
+
+    .grid-item .text-content .text-success,
+    .grid-item .text-content .text-muted {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .grid-item .text-content p {
+        margin: 10px 0;
+        font-size: 14px;
+    }
+
+    /* 좋아요 (북마크) 버튼 위치 */
+    .like-section {
+        position: absolute;
+        bottom: 10px; /* 하단 위치 */
+        right: 10px; /* 우측 위치 */
+        z-index: 10;  /* 다른 콘텐츠 위로 */
+    }
+
+    .like-section img {
+        width: 35px;  /* 버튼 크기 */
+        height: 35px;
+        object-fit: contain;
+        cursor: pointer;
+    }
+
+    /* 슬라이드 관련 */
+    .arrow-btns {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding: 0 30px;
+        position: relative;
+    }
+
+    .arrow-btns button {
+        background-color: transparent;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .arrow-btns button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+/* 왼쪽 화살표 */
+.left-arrow {
+    position: absolute;
+    top: 50%;
+    left: -40px; /* 왼쪽 끝 */
+    transform: translateY(-50%); /* 세로 중앙 정렬 */
+    color: #508344 !important;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+.left-arrow:hover{
+    background-color: #E2F5D0 !important;
+}
+/* 오른쪽 화살표 */
+.right-arrow {
+    color: #508344 !important;
+    position: absolute;
+    top: 50%;
+    right: -40px; /* 오른쪽 끝 */
+    transform: translateY(-50%); /* 세로 중앙 정렬 */
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+.right-arrow:hover{
+    background-color: #E2F5D0 !important;
+}
+
+
+/* 슬라이드 카운트 표시 */
+.slide-count-container {
+    position: absolute;  /* 그리드 내에서 위치를 절대적으로 설정 */
+    top: 170px;           /* 상단에서 10px */
+    right: 100px;         /* 오른쪽에서 10px */
+    font-size: 18px;
+    font-weight: bold;
+    color: #8b8b8b;
+    z-index: 10;         /* 다른 콘텐츠보다 위로 */
+}
+
+
+    /* 배경 고정 */
+    body {
+        background-attachment: fixed;
+    }
+</style>
+
+
 {% endblock %}

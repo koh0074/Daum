@@ -2,12 +2,24 @@
 
 {% block content %}
 <h2>프로필 수정</h2>
-<form method="POST" enctype="multipart/form-data">
+
+<!-- 메시지 표시 -->
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data" id="profile-edit-form">
     {% csrf_token %}
     
     <!-- 닉네임 수정 -->
-    <label for="first_name">닉네임:</label>
-    <input type="text" name="first_name" id="first_name" value="{{ user.first_name }}" required>
+    <label for="nickname">닉네임:</label>
+    <input type="text" name="nickname" id="nickname" value="{{ user.nickname }}" required>
     
     <!-- 프로필 사진 수정 -->
     <label for="profile_image">프로필 사진:</label>
@@ -15,4 +27,19 @@
     
     <button type="submit" class="btn btn-primary">수정 완료</button>
 </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nicknameForm = document.getElementById('profile-edit-form');
+        const nicknameInput = document.getElementById('nickname');
+
+        nicknameForm.addEventListener('submit', (event) => {
+            const nickname = nicknameInput.value.trim(); // 공백 제거 후 값 확인
+            if (nickname.length > 20) {
+                alert('닉네임은 20자 이내로 작성해주세요.'); // 경고 메시지 출력
+                event.preventDefault(); // 폼 제출 막기
+            }
+        });
+    });
+</script>
 {% endblock %}

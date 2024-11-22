@@ -2,29 +2,57 @@
 {% load static %}
 
 {% block content %}
+<form method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
 <div class="container mt-5">
-    <h2>여행지 정보 <span class="text-muted">총 {{ destination_count }}건</span></h2>
-    
-    <div class="row mt-4">
+    <!-- 헤더 텍스트 -->
+    <div class="header-text">
+        <span class="festival-title">국내 여행지 정보</span>
+        <span class="festival-count">총 {{ destination_count }}건</span>
+    </div>
+
+    <!-- 메인 그리드 -->
+    <div class="main-grid">
         {% if destinations %}
             {% for destination in destinations %}
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
-                    {% if destination.image %}
-                    <img src="{{ destination.image.url }}" class="card-img-top custom-img" alt="{{ destination.name }}">
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <h5 class="card-title">{{ destination.name }}</h5>
-                        <p>{{ destination.description|truncatewords:20 }}</p>
-                        <p><strong>장소:</strong> {{ destination.location }}</p>
+            <div class="grid-item">
+                <!-- 이미지 -->
+                {% if destination.image %}
+                    <img src="{{ destination.image.url }}" alt="{{ destination.name }}">
+                {% else %}
+                    <img src="{% static 'images/default_destination.jpg' %}" alt="{{ destination.name }}">
+                {% endif %}
+                
+                <!-- 여행지 정보 -->
+                <div class="content">
+                    <div class="left">
+                        {% if destination.image %}
+                            <img class="city-image" src="{{ destination.image.url }}" alt="{{ destination.name }}">
+                        {% else %}
+                            <img class="city-image" src="{% static 'images/default_destination.jpg' %}" alt="Default">
+                        {% endif %}
+                    </div>
+                    <div class="center">
+                        <div class="festival-name">{{ destination.name }}</div>
+                        <div class="city-name">{{ destination.location }}</div>
+                    </div>
+                    <div class="right">
+                        <div class="like-section">
+                            <img src="{% static 'images/북마크-비워짐.png' %}" 
+                                class="like-btn" 
+                                alt="찜하기" 
+                                width="30px" 
+                                data-id="{{ destination.id }}" 
+                                data-url="{% url 'places:toggle_destination_bookmark' destination.id %}" 
+                                data-bookmarked="{{ destination.is_bookmarked|yesno:'true,false' }}">
+                        </div>
                         
-                        <!-- 찜 버튼 -->
-                        <button class="btn travel-bookmark-btn {% if destination.is_bookmarked %}btn-primary{% else %}btn-outline-primary{% endif %}" 
-                                data-destination-id="{{ destination.id }}" 
-                                data-url="{% url 'places:toggle_destination_bookmark' destination.id %}">
-                            {% if destination.is_bookmarked %}찜 취소{% else %}찜하기{% endif %}
-                        </button>
+                    </div>
+                    <!-- 디데이 텍스트 -->
+                    <div class="status-text">
+                        <span class="badge bg-primary">{{ destination.days_left }}</span>
                     </div>
                 </div>
             </div>
@@ -36,36 +64,171 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const buttons = document.querySelectorAll('.travel-bookmark-btn');
+window.addEventListener('load', function() {
+    const likeButtons = document.querySelectorAll('.like-btn');
 
-    buttons.forEach(button => {
+    likeButtons.forEach(button => {
+        // 초기 상태 반영
+        const isBookmarked = button.getAttribute('data-bookmarked') === 'true';
+        button.src = isBookmarked 
+            ? "{% static 'images/북마크-채워짐.png' %}" 
+            : "{% static 'images/북마크-비워짐.png' %}";
+
+        // 클릭 이벤트 리스너 추가
         button.addEventListener('click', function() {
             const url = this.getAttribute('data-url');
+            if (!url) {
+                console.error("Error: Bookmark URL is not defined.");
+                return;
+            }
+
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const currentState = this.getAttribute('data-bookmarked') === 'true';
+            const newState = !currentState;
 
             fetch(url, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrftoken,
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify({ is_bookmarked: newState })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Failed to toggle bookmark');
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.is_bookmarked) {
-                    this.textContent = '찜 취소';
-                    this.classList.remove('btn-outline-primary');
-                    this.classList.add('btn-primary');
+                    this.src = "{% static 'images/북마크-채워짐.png' %}";
+                    this.setAttribute('data-bookmarked', 'true');
                 } else {
-                    this.textContent = '찜하기';
-                    this.classList.remove('btn-primary');
-                    this.classList.add('btn-outline-primary');
+                    this.src = "{% static 'images/북마크-비워짐.png' %}";
+                    this.setAttribute('data-bookmarked', 'false');
                 }
             })
-            .catch(error => console.error('There was an error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
     });
 });
+
 </script>
+
+
+<!-- 스타일 -->
+<style>
+    .custom-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        padding: 30px;
+    }
+
+    .grid-item {
+        background-color: rgba(239, 236, 236, 0.551);
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .grid-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .grid-item img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .grid-item .content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .grid-item .left .city-image {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        margin-right: 8px;
+        object-fit: cover;
+    }
+
+    .grid-item .center .festival-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: rgb(33, 32, 32);
+    }
+
+    .grid-item .center .city-name {
+        font-size: 13px;
+        color: #8b8b8b;
+    }
+
+    .grid-item .right img {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        cursor: pointer;
+    }
+
+    .header-text {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin: 10px 40px;
+    }
+
+    .festival-title {
+        font-size: 37px;
+        font-weight: bold;
+        color: #508344;
+    }
+
+    .festival-count {
+        font-size: 16px;
+        font-weight: normal;
+        color: #8b8b8b;
+        margin-left: 10px;
+    }
+
+    .status-text {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: white;
+        padding: 5px;
+        font-size: 35px;
+        font-weight: bold;
+    }
+
+    .bg-primary {
+        background-color: unset !important;
+    }
+
+    body {
+        background-attachment: fixed; /* 배경 고정 */
+    }
+</style>
 {% endblock %}

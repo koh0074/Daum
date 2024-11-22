@@ -15,8 +15,10 @@ class Post(models.Model):
     rating = models.IntegerField(default=3, verbose_name="별점")  # 별점 필드
     tags = models.ManyToManyField(Tag, blank=True, related_name='posts', verbose_name="태그")
     image = models.ImageField(upload_to='images/', blank=True, null=True)
+    thumbnail_image = models.ImageField(upload_to='thumbnails/', blank=True, null=True, verbose_name="대표 이미지")  # 추가
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_draft = models.BooleanField(default=False)  # 임시 저장 여부
 
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
@@ -54,5 +56,3 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.post.title}"
-
-

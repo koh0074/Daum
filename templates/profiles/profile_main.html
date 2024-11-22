@@ -2,218 +2,528 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <!-- 프로필 정보 -->
-    <div class="profile-header d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center">
-            <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
-            <h2 class="mb-0">{{ user.nickname }}의 여행일기</h2>
-        </div>
-    </div>
-
-    <!-- 편집 드롭다운 버튼 -->
-    <div class="edit-dropdown position-relative mt-4">
-        <button class="btn btn-outline-secondary">프로필 편집</button>
-        
-        <!-- 호버 시 나타나는 편집 폼 -->
-        <div class="edit-dropdown-form shadow p-4 bg-light rounded">
-            <!-- 닉네임 수정 폼 -->
-            <form method="post" action="{% url 'profiles:edit_nickname' %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="nickname" class="form-label">새 닉네임</label>
-                    <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새로운 닉네임 입력" required>
-                </div>
-                <button type="submit" class="btn btn-primary w-100 mb-3">닉네임 저장</button>
-            </form>
-
-            <!-- 프로필 사진 수정 폼 -->
-            <form method="post" action="{% url 'profiles:edit_profile_image' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="profile_image" class="form-label">프로필 사진 변경</label>
-                    <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-primary w-100">사진 저장</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-    <!-- 친구 수 및 드롭다운 -->
-    <div class="friends-dropdown mt-4 position-relative">
-        <button class="btn btn-outline-info">
-            친구 {{ friends_count }}명
-        </button>
-        <div class="friends-list shadow p-3 bg-light rounded">
-            {% if friends %}
-                <ul class="list-unstyled">
-                    {% for friend in friends %}
-                    <li class="mb-2">
-                        <a href="{% url 'profiles:friend_profile' friend.username %}" class="text-decoration-none">
-                            {% if friend.first_name %}
-                                {{ friend.first_name }} (@{{ friend.username }})
-                            {% else %}
-                                {{ friend.username }}
-                            {% endif %}
-                        </a>
-                    </li>
-                    
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>아직 친구가 없습니다.</p>
-            {% endif %}
-        </div>
-    </div>
-
-        <!-- 찜한 항목 드롭다운 -->
-    <div class="wishlist-dropdown mt-4 position-relative">
-        <button class="btn btn-outline-success">
-            찜한 항목 {{ festival_bookmarks.count|add:travel_bookmarks.count|add:post_bookmarks.count }}개
-        </button>
-        <div class="wishlist-list shadow p-4 bg-light rounded">
-            
-            <!-- 찜한 축제 목록 -->
-            <h5>🎉 찜한 축제</h5>
-            {% if festival_bookmarks %}
-                <ul class="list-unstyled mb-4">
-                    {% for bookmark in festival_bookmarks %}
-                        <li>
-                            <strong>{{ bookmark.festival.name }}</strong><br>
-                            위치: {{ bookmark.festival.location }}<br>
-                            기간: {{ bookmark.festival.start_date }} ~ {{ bookmark.festival.end_date }}
-                        </li>
-                        <hr>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>찜한 축제가 없습니다.</p>
-            {% endif %}
-            
-            <!-- 찜한 여행지 목록 -->
-            <h5>🗺️ 찜한 여행지</h5>
-            {% if travel_bookmarks %}
-                <ul class="list-unstyled mb-4">
-                    {% for bookmark in travel_bookmarks %}
-                        <li>
-                            <strong>{{ bookmark.destination.name }}</strong><br>
-                            위치: {{ bookmark.destination.location }}<br>
-                            설명: {{ bookmark.destination.description|truncatewords:10 }}
-                        </li>
-                        <hr>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>찜한 여행지가 없습니다.</p>
-            {% endif %}
-            
-            <!-- 찜한 게시글 목록 -->
-            <h5>📝 찜한 게시글</h5>
-            {% if post_bookmarks %}
-                <ul class="list-unstyled">
-                    {% for bookmark in post_bookmarks %}
-                        <li>
-                            <strong>{{ bookmark.post.title }}</strong><br>
-                            작성자: {{ bookmark.post.author.username }}<br>
-                            작성 날짜: {{ bookmark.post.created_at|date:"Y년 m월 d일 H:i" }}
-                        </li>
-                        <hr>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>찜한 게시글이 없습니다.</p>
-            {% endif %}
-        </div>
-    </div>
-
-
-
-    <div class="post-list mt-4">
-        {% if posts %}
-            {% for post in posts %}
-                <div class="post-card mb-4">
-                    <h3>{{ post.title }}</h3>
-                    <p>작성자: 
-                        {% if post.author.first_name %}
-                            {{ post.author.first_name }}
-                        {% else %}
-                            {{ post.author.username }}
-                        {% endif %}
-                    </p>
-                    <p>{{ post.content|truncatewords:20 }}</p>
-                    <p>위치: {{ post.location }}</p>
-
-                    <!-- 작성 날짜 표시 -->
-                    <p>작성 날짜: {{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
-
-                    <!-- 별점 표시 부분 수정 -->
-                    <p>별점: 
-                        {% for i in "123" %}
-                            <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                        {% endfor %}
-                    </p>
-    
-                    <!-- 게시글 수정 및 삭제 버튼 (작성자 본인만 보이게) -->
-                    {% if post.author == user %}
-                        <div class="mt-3">
-                            <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary">수정</a>
-                            <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
+<div class="container main-content">
+    <div class="profile-box">
+        <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img" alt="프로필 사진">
+        <div class="profile-info">    
+            <div class="profile-name">
+                <p>{{ user.nickname }}의 여행일기<p>
+                <div class="position-relative">
+                    <!-- 편집 버튼 -->
+                    <button id="edit-button">
+                        <img id="toggle-image" src="{% static 'images/편집-평소.png' %}" data-clicked="{% static 'images/편집-호버링.png' %}" 
+                            data-normal="{% static 'images/편집-평소.png' %}"  alt="편집 버튼">
+                    </button>
+                    <!-- 드롭다운 -->
+                    <div class="edit-dropdown bg-light rounded" id="edit-dropdown">
+                            <!-- 닉네임 수정 폼 -->
+                            <form class="name-edit-A" method="post" action="{% url 'profiles:edit_nickname' %}" id="nickname-form">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+                                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="새로운 닉네임 입력" required>
+                                <button type="submit" class="btn btn-primary" id="save-nickname">닉네임 저장</button>
                             </form>
+                            <!-- 프로필 사진 수정 폼 -->
+                            <form class="edit-photo-B" method="post" action="{% url 'profiles:edit_profile_image' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                <button type="submit" class="btn btn-primary">사진 저장</button>
+                            </form>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="profile-btn">
+                <!-- 친구 수 및 드롭다운 -->
+                <div class="profile-btn friends-dropdown position-relative">
+                    <button class="friends btn-outline-info">
+                        친구 <span id="friend-n">{{ friends_count }}</span>명
+                    </button>
+                    <div class="please friends-list shadow p-3 bg-light rounded">
+                        {% if friends %}
+                            <ul class="list-unstyled">
+                                {% for friend in friends %}
+                                <li class="">
+                                    <a href="{% url 'profiles:friend_profile' friend.username %}" class="text-decoration-none">
+                                        {{ friend.nickname|default:friend.username }} (@{{ friend.username }})
+
+                                    </a>
+                                </li>
+                                <hr>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>아직 친구가 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="locaton-mapping">
+                    <button class="map">
+                        여행지도 <span id="map-n">7</span>핀
+                    </button>
+                </div>
+
+                    <!-- 찜한 항목 드롭다운 -->
+                <div class="jjim-dropdown">
+                    <button class="jjim btn btn-outline-success">
+                        찜한 항목 
+                        <span id="jjim-n">
+                            {{ festival_bookmarks.count|add:travel_bookmarks.count|add:post_bookmarks.count }}
+                        </span>
+                        개
+                    </button>
+                    <div class="wishlist-list shadow p-4 bg-light rounded">
+                        <!-- 찜한 게시글 목록 -->
+                        {% if post_bookmarks %}
+                            <ul class="list-unstyled">
+                                {% for bookmark in post_bookmarks %}
+                                    <li>
+                                        <strong id="pptitle">{{ bookmark.post.title }}</strong><br>
+                                        <p id="author">{{ bookmark.post.author.username }}</p>
+                                        <p id="datedate">{{ bookmark.post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+                                    </li>
+                                    <hr>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>찜한 게시글이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-list">
+        <h2>임시 저장</h2>
+        <button class="left-arrow" id="prev-btn-imshi" disabled>◀</button>
+        <div class="post-grid" id="post-grid-imshi">
+            <!-- 임시 저장된 글 내용들이 여기에 동적으로 삽입됩니다. -->
+            {% for post in draft_posts %}
+            <div class="post-card grid-item">
+                    <!-- 이미지가 있는 경우 출력 -->
+                    <div class="image-container">
+                        {% if post.thumbnail_image %}
+                            <img src="{{ post.thumbnail_image.url }}" alt="썸네일">
+                        {% else %}
+                            <img src="{% static 'images/임시저장-수정.png' %}" alt="이미지 없음">
+                        {% endif %}
+
+                        <!-- 별점 표시 -->
+                        <p class="profile-inside-rating">
+                            {% for i in "123" %}
+                                <span class="profile-inside-eachstar {% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                            {% endfor %}
+                        </p>
+                    </div>                
+                    <div class="post-info">
+                        <div class="left-info">
+                            <h3 class="profile-inside-h3">{{ post.title }}</h3>
+                            <p class="no-bmargin">{{ post.location|default:"위치 정보 없음" }}</p>
                         </div>
+                        <div class="right-info">
+                            <div class="calendar-image">
+                                <!-- 캘린더 이미지 추가 -->
+                                <img src="{% static 'images/달력.png' %}" alt="Calendar">
+                            </div>
+                            <p class="post-date">{{ post.created_at|date:"Y/m/d" }}</p>
+                        </div>
+                    </div>
+
+                    {% if post.author == user %}
+                    <div class="buttons">
+                        <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary editedit">수정</a>
+                        <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger dldl" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+                        </form>
+                    </div>
                     {% endif %}
                 </div>
             {% endfor %}
-        {% else %}
-            <p>아직 작성된 게시글이 없습니다.</p>
-        {% endif %}
+        </div>
+        <button class="right-arrow" id="next-btn-imshi">▶</button>
     </div>
+        <span class="slide-count" id="slide-count-imshi">1/{{ totalPages }}</span>
     
+    <hr class="hrhr">
     
+    <div class="post-list">
+        <!-- 내가 쓴 글 -->
+        <h2>내가 쓴 글</h2>
+        <button class="left-arrow" id="prev-btn" disabled>◀</button>
+        <div class="post-grid" id="post-grid">
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="post-card grid-item">
+                        <!-- 이미지가 있는 경우 출력 -->
+                        <div class="image-container">
+                            {% if post.thumbnail_image %}
+                                <img src="{{ post.thumbnail_image.url }}" alt="썸네일">
+                            {% else %}
+                                <img src="{% static 'images/d-게시글.png' %}" alt="이미지 없음">
+                            {% endif %}
 
-    <div class="mt-4">
-        <a href="{% url 'accounts:logout' %}" class="btn btn-danger">로그아웃</a>
+                            <!-- 별점 표시 -->
+                            <p class="profile-inside-rating">
+                                {% for i in "123" %}
+                                    <span class="profile-inside-eachstar {% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                                {% endfor %}
+                            </p>                        
+                        </div>
+
+                        <div class="post-info">
+                            <div class="left-info">
+                                <h3 class="profile-inside-h3">{{ post.title }}</h3>
+                                <p class="no-bmargin">{{ post.location|default:"위치 정보 없음" }}</p>
+                            </div>
+                            <div class="right-info">
+                                <div class="calendar-image">
+                                    <!-- 캘린더 이미지 추가 -->
+                                    <img src="{% static 'images/달력.png' %}" alt="Calendar" >
+                                </div>
+                                <p class="post-date">{{ post.created_at|date:"Y/m/d" }}</p>
+                            </div>
+                        </div>
+        
+                        <!-- 게시글 수정 및 삭제 버튼 -->
+                        {% if post.author == user %}
+                            <div class="buttons">
+                                <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary editedit">수정</a>
+                                <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger dldl" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>아직 작성된 게시글이 없습니다.</p>
+            {% endif %}
+        </div>
+        <button class="right-arrow" id="next-btn">▶</button>
+    </div>
+    <span class="slide-count" id="slide-count">1/{{ totalPages }}</span> <!-- 슬라이드 카운트 -->
+
+    <div class="logout">
+        <a href="{% url 'accounts:logout' %}" class="btn btn-danger loglogout">로그아웃</a>
     </div>
 </div>
-{% endblock content %}
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nicknameForm = document.getElementById('nickname-form'); // 닉네임 수정 폼
+        const nicknameInput = document.getElementById('nickname'); // 닉네임 입력 필드
+
+        nicknameForm.addEventListener('submit', (event) => {
+            const nicknameValue = nicknameInput.value.trim(); // 닉네임의 공백 제거 후 값 가져오기
+            if (nicknameValue.length > 20) {
+                alert('닉네임은 20자 이내로 작성해주세요.'); // 경고 메시지
+                event.preventDefault(); // 폼 제출 중단
+            }
+        });
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        const editButton = document.getElementById('edit-button');
+        const editDropdown = document.getElementById('edit-dropdown');
+        const toggleImage = document.getElementById('toggle-image'); // 이미지 요소 선택
+    
+        // 드롭다운 상태와 연동할 이미지 경로
+        const normalSrc = toggleImage.getAttribute('data-normal'); // 기본 이미지
+        const clickedSrc = toggleImage.getAttribute('data-clicked'); // 클릭 상태 이미지
+    
+        // 버튼 클릭 시 드롭다운 표시 토글
+        editButton.addEventListener('click', function () {
+            const isHidden = editDropdown.style.display === 'none' || editDropdown.style.display === '';
+            editDropdown.style.display = isHidden ? 'block' : 'none';
+    
+            // 이미지 상태 변경
+            toggleImage.src = isHidden ? clickedSrc : normalSrc;
+        });
+    
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', function (event) {
+            if (!editDropdown.contains(event.target) && !editButton.contains(event.target)) {
+                editDropdown.style.display = 'none';
+                toggleImage.src = normalSrc; // 기본 이미지로 복원
+            }
+        });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        const itemsPerPage = 3; // 한 페이지에 보여줄 그리드 항목 수 (1줄에 3개)
+    
+        // 임시 저장된 글 관련 처리
+        const gridsImshi = document.querySelector('#post-grid-imshi');
+        const leftArrowImshi = document.querySelector('#prev-btn-imshi');
+        const rightArrowImshi = document.querySelector('#next-btn-imshi');
+        const slideCountImshi = document.querySelector('#slide-count-imshi');
+        const postsImshi = document.querySelectorAll('#post-grid-imshi .grid-item'); // 임시 저장된 글
+        let currentSlideImshi = 0;
+        const totalPostsImshi = postsImshi.length;
+        const totalPagesImshi = Math.ceil(totalPostsImshi / itemsPerPage);
+    
+        // 출간된 글 관련 처리
+        const grids = document.querySelector('#post-grid');
+        const leftArrow = document.querySelector('#prev-btn');
+        const rightArrow = document.querySelector('#next-btn');
+        const slideCount = document.querySelector('#slide-count');
+        const posts = document.querySelectorAll('#post-grid .grid-item'); // 출간된 글
+        let currentSlide = 0;
+        const totalPosts = posts.length;
+        const totalPages = Math.ceil(totalPosts / itemsPerPage);
+    
+        // 슬라이드 페이지 카운트를 표시하는 함수
+        function updateSlideCount(slideCount, currentSlide, totalPages) {
+            const currentPage = Math.floor(currentSlide / itemsPerPage) + 1;
+            slideCount.textContent = `${currentPage}/${totalPages}`;
+        }
+    
+        // 슬라이드 그리드 업데이트 함수
+        function updateGridRow(grids, posts, currentSlide) {
+            const visiblePosts = Array.from(posts).slice(currentSlide, currentSlide + itemsPerPage);
+            grids.innerHTML = ''; // 기존 그리드 내용 초기화
+            visiblePosts.forEach(post => {
+                grids.appendChild(post);
+            });
+        }
+    
+        // 임시 저장된 글 그리드 업데이트
+        function updateImshiGrid() {
+            updateGridRow(gridsImshi, postsImshi, currentSlideImshi);
+            updateSlideCount(slideCountImshi, currentSlideImshi, totalPagesImshi);
+    
+            leftArrowImshi.disabled = currentSlideImshi === 0;
+            rightArrowImshi.disabled = currentSlideImshi + itemsPerPage >= totalPostsImshi;
+        }
+    
+        // 출간된 글 그리드 업데이트
+        function updatePublishedGrid() {
+            updateGridRow(grids, posts, currentSlide); // 여기서 posts를 그리드에 맞게 업데이트
+            updateSlideCount(slideCount, currentSlide, totalPages);
+    
+            leftArrow.disabled = currentSlide === 0;
+            rightArrow.disabled = currentSlide + itemsPerPage >= totalPosts;
+        }
+    
+        // 임시 저장된 글 왼쪽 화살표 클릭 이벤트
+        leftArrowImshi.addEventListener('click', () => {
+            if (currentSlideImshi > 0) {
+                currentSlideImshi -= itemsPerPage;
+                updateImshiGrid();
+            }
+        });
+    
+        // 임시 저장된 글 오른쪽 화살표 클릭 이벤트
+        rightArrowImshi.addEventListener('click', () => {
+            if (currentSlideImshi + itemsPerPage < totalPostsImshi) {
+                currentSlideImshi += itemsPerPage;
+                updateImshiGrid();
+            }
+        });
+    
+        // 출간된 글 왼쪽 화살표 클릭 이벤트
+        leftArrow.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide -= itemsPerPage;
+                updatePublishedGrid();
+            }
+        });
+    
+        // 출간된 글 오른쪽 화살표 클릭 이벤트
+        rightArrow.addEventListener('click', () => {
+            if (currentSlide + itemsPerPage < totalPosts) {
+                currentSlide += itemsPerPage;
+                updatePublishedGrid();
+            }
+        });
+    
+        // 초기 그리드 표시
+        updateImshiGrid(); // 임시 저장된 글 그리드 초기화
+        updatePublishedGrid(); // 출간된 글 그리드 초기화
+    });
+</script>
 
 <style>
-    /* 스타일 설정 */
+        .h-pm-url {
+        color: black !important;
+        font-size: 20px;
+    }
+      /* 기본 설정 */
+      @font-face {
+      font-family: 'SchoolSafeFont';
+      src: url('{%static "fonts/HakgyoansimYeohaengR.ttf" %}') format('truetype');
+    }
+
+    .container {
+        width: 90%;
+        height:100%;
+        max-width: 1400px;
+        margin-top: 20px;
+        padding: 5px;
+        margin-bottom: 0px;
+        display: flex;
+        flex-direction: column;
+    }
+
+
+    .profile-box {
+        align-items: center;
+        display: flex;
+        justify-content:center;
+    }
+    
     .profile-img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
+        width: 200px;
+        height: 200px; /* 고정 크기 */
         border-radius: 50%;
+        border: 5px solid #508344;
+        margin-right:50px;
+    }
+    
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        margin-left:50px;
+    }
+    .profile-name{
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .profile-name > p {
+        font-family: 'SchoolSafeFont';
+        font-size: 53px;
+        color: #508344;
+        margin:0;
+    }
+    
+    .profile-name button{
+        background:none;
+
     }
 
+    .profile-name img {
+        width: 70px;
+        margin-left: 5px;
+        margin-top: 10px;
+    }
+    
+    .profile-name img:hover {
+        transform: scale(1.01);
+    }
+    
+    .profile-btn {
+        margin-top: 5px;
+        display: flex;
+        gap: 10px;
+        justify-content: space-evenly;
+    }
+    
+    .profile-btn button {
+        font-size: 20px;
+        background: none;
+        color: #508344;
+        font-weight: bold;
+        border: none;
+        margin: 5px 35px;
+    }
+    
+    .friends-list {
+        background: linear-gradient(to bottom, #508344, #759C6B);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 */
+        max-width: 300px;
+        overflow-y:auto;
+        height: 200px;
+        color:white;
+    }
+    .profile-btn button:hover {
+        color: #3e6b2f;
+    }
+    
+    .profile-btn {
+        align-items: center;
+    }
+
+    .btn:first-child:active {
+        background-color: unset !important;
+        color: #508344 !important;
+    }
     .edit-dropdown {
-        position: relative;
-        display: inline-block;
+        position: absolute; /* 부모 요소 기준으로 위치 고정 */
+        top: 100%; /* 버튼 바로 아래에 배치 */
+        right: 0; /* 부모 요소 오른쪽 정렬 */
+        z-index: 1000; /* 다른 요소 위에 표시 */
+        display: none; /* 초기에는 숨김 */
+        background: linear-gradient(to bottom, #508344, #759C6B);
+        color: white;
+        border: 1px solid #ccc; /* 테두리 */
+        border-radius: 5px; /* 모서리 둥글게 */
+        padding: 15px; /* 여백 */
+        width: 370px; /* 드롭다운 너비 */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 */
+    }
+    .edit-dropdown form{
+        margin:10px;
     }
 
-    .edit-dropdown-form {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 350px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        z-index: 10;
+    .name-edit-A{
+        display:flex;
+        align-items:center;
     }
 
-    /* 드롭다운이 호버 시 나타남 */
-    .edit-dropdown:hover .edit-dropdown-form {
-        display: block;
+    .name-edit-A input{
+        width: 190px;
+        padding: 8px;
+        border: none;
+        font-size: 15px;
+        resize: none;
+        margin-right:10px;
+    }
+    .name-edit-A button{
+        background-color: #8DB983; 
+        color: white;
+        border: none;
+        cursor: pointer;
+        width:116px;
     }
 
-    .edit-dropdown-form form {
-        margin-bottom: 20px;
+    .name-edit-A button:hover {
+        transform:scale(1.01);
+        color:black;
+        background: #8DB983;
+    }
+
+    
+    .edit-photo-B{
+        display:flex;
+        align-items:center;
+    }
+    .edit-photo-B input{
+        width: 190px;
+        padding: 8px;
+        border: none;
+        font-size: 15px;
+        resize: none;
+        margin-right:10px;
+    }
+    .edit-photo-B button{
+        background-color: #8DB983; 
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        width:116px;
+        height: 36px;
+    }
+
+    .edit-photo-B button:hover {
+        transform:scale(1.01);
+        background-color: #8DB983; 
+        color:black;
     }
 
     .btn-outline-secondary {
@@ -233,20 +543,28 @@
         border-radius: 8px;
         padding: 15px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index:2000;
+        scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
+        -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨기기 */
     }
     .friends-dropdown:hover .friends-list {
         display: block;
     }
+
+    .text-decoration-none {
+        font-family: 'SchoolSafeFont';
+        color: #FDF3D4;
+    }
+    
     .text-warning {
         color: gold;
     }
     .text-muted {
         color: gray;
     }
-    .wishlist-dropdown {
+    .jjim-dropdown {
         position: relative;
         display: inline-block;
-        margin-top: 20px;
     }
     .wishlist-list {
         display: none;
@@ -254,27 +572,288 @@
         top: 100%;
         left: 0;
         width: 350px;
-        background-color: #f8f9fa;
+        height: 300px;
+        overflow-y:auto;
+        background: linear-gradient(to bottom, #508344, #759C6B);
         border-radius: 8px;
         padding: 20px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         z-index: 10;
+        color:white;
+        scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
+        -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨기기 */
     }
-    .wishlist-dropdown:hover .wishlist-list {
+    .jjim-dropdown:hover .wishlist-list {
         display: block;
     }
-    .wishlist-list h5 {
-        margin-top: 10px;
-        margin-bottom: 10px;
-        font-weight: bold;
+    .jjim-dropdown button:hover{
+        background: none;
     }
     .wishlist-list ul {
         padding-left: 0;
+
     }
     .wishlist-list li {
-        margin-bottom: 10px;
+        font-family: 'SchoolSafeFont';
+        padding:1px;
+        margin-bottom: 5px;        
+        background-color: rgba(255,255,255,0.6);
+        border-radius:5px;
     }
-    hr {
+    #pptitle{
+        font-size:18px;
+        color: #FDF3D4;
+
+    }
+    #author, #datedate{
+        font-size:15px;
+        color: #757575;
+        margin:0;
+    }
+    hrhr {
         border: 0.5px solid #ddd;
+        margin: 20px 0px ;
+
     }
+    .post-list {
+        display: grid;
+        grid-template-areas:
+            "title title title"
+            "left-arrow slide-count right-arrow"
+            "left-arrow post-grid right-arrow";
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto 1fr;
+        gap: 10px;     
+        width: 100%;
+        align-items:center;
+        justify-content:center;
+    }
+    
+    h2 {
+        grid-area: title;
+        text-align: center;
+        color:#757575;
+        font-family:'SchoolSafeFont';
+        font-size:20px;
+        margin-top:20px;
+    }
+    
+    .slide-count {
+        grid-area: slide-count;
+        justify-self: center; /* 가운데 정렬 */
+        align-self: center;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-top:20px;
+        color:#757575;
+    }
+
+
+    .left-arrow {
+        color: #508344 !important;
+        grid-area: left-arrow;
+        align-self: center;
+        justify-self: start;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .left-arrow:hover{
+        background-color: #E2F5D0 !important;
+    }
+
+    .right-arrow {
+        color: #508344 !important;
+        grid-area: right-arrow;
+        align-self: center;
+        justify-self: end;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    .right-arrow:hover{
+        background-color: #E2F5D0 !important;
+    }
+    
+    .post-grid {
+        display: grid;
+        justify-content: center; /* 가운데 정렬 */
+        grid-template-columns: repeat(3, 350px); /* 3개의 고정 너비 열 */
+        gap: 20px;
+    }
+    
+    .post-card {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        background: linear-gradient (to bottom, #fff,#E5E4E4);
+        height:350px;
+        justify-content: center;
+    }
+
+    .grid-item img {
+        width: 100%;
+        height: 170px;
+        object-fit: cover;
+        border-radius: 8px;
+        display: block; /* 이미지 영역 확보 */
+    }
+
+    .grid-item .image-placeholder {
+        width: 100%;
+        height: 160px;
+        background-color: rgba(200, 200, 200, 0.3);
+        border-radius: 8px;
+    }
+
+    .grid-item{
+        justify-content: flex-start;
+    }
+    .grid-item:hover {
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 이미지 영역 */
+    .grid-item .image-container {
+        width: 100%;
+        height: 58%; /* 그리드 4/3 차지 */
+        overflow: hidden;
+        border-radius: 10px 10px 0 0; /* 위쪽 모서리 둥글게 */
+        background-color: #d9d9d9; /* 이미지 없을 때 배경색 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .grid-item .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .grid-item .image-container.no-image {
+        background-color: #f5f5f5; /* 이미지가 없을 때의 배경색 */
+    }
+
+    .image-container{
+        position:relative;
+        display:inline-block;
+    }
+    .image-container-inside{
+        display:block;
+    }
+    .image-container img{
+        width: 100%; /* 부모 컨테이너에 맞게 이미지 크기 자동 조정 */
+        height: auto; /* 비율에 맞춰 높이 자동 조정 */
+    }
+    .profile-inside-eachstar{
+        font-size:30px;
+    }
+    .profile-inside-rating{
+        position:absolute;
+        top:5px;
+        right:10px;
+        display:flex;
+        gap:5px;
+    }
+
+    .profile-inside-h3{
+        font-size:18px;
+        margin-top:9px;
+        margin-bottom:7px;
+    }
+
+    .no-bmargin{
+        margin:1px;
+    }
+
+    .editedit{
+        background-color: #8DB983; 
+        opacity:0.8;
+        color: black;
+        border:none;
+        margin-top:10px;
+    }
+    .dldl{
+        background-color: #be2f22aa; 
+        opacity:0.8;
+        color: black;
+        border:none;
+        margin-top:10px;
+    }
+    .logout {
+        display: flex;
+        justify-content: flex-end; /* 오른쪽 정렬 */
+        margin: 10px 0 20px 0; /* 필요시 여백 추가 */
+    }
+     /*여기서부터 달력을 위한 수정*//
+     .post-card {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        background: linear-gradient(to bottom, #fff, #E5E4E4);
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .post-info {
+        display: flex;
+        justify-content: space-between; /* 왼쪽/오른쪽 배치 */
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .left-info {
+        width:80%;
+        pdding-right:10px;
+        flex: 1;
+    }
+    
+    .right-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 오른쪽 정렬 */
+        justify-content: space-between;
+        width:20%;
+    }
+    
+    .calendar-image >img {
+        margin-bottom: 5px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .post-date {
+        font-size: 12px;
+        color: #508344;
+        font-weight:bold;
+    }
+    p{
+        margin:0 !important;
+    }
+    .profile-inside-h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 9px;
+        margin-bottom: 7px;
+        white-space: nowrap; /* 한 줄로 텍스트 표시 */
+        overflow: hidden; /* 넘치는 부분 숨기기 */
+        text-overflow: ellipsis; /* 넘치는 부분에 '...' 추가 */
+    }
+
+    .no-bmargin {
+        margin: 1px;
+    }
+
+
 </style>
+{% endblock content %}

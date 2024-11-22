@@ -3,94 +3,217 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>{{ title }}</h2>
-    <hr>
-
     <!-- 곧 시작하는 축제 -->
     {% if upcoming_festivals %}
-        <h3 class="text-warning">찜한 축제가 곧 시작해요!</h3>
-        <div class="row mt-4">
-            {% for festival in upcoming_festivals %}
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
-                    {% if festival.image %}
-                        <img src="{{ festival.image.url }}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                        <img src="{% static 'images/default_festival.jpg' %}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <h5 class="card-title">{{ festival.name }}</h5>
-                        <p>{{ festival.description|truncatewords:20 }}</p>
+        <span class="post-title">{{ title }}가 곧 시작해요!</span>
+        <div class="main-grid-container">
+            <div class="main-grid" id="upcoming-slider">
+                {% for festival in upcoming_festivals %}
+                <div class="grid-item" data-id="{{ festival.id }}">
+                    <div class="image-container">
+                        {% if festival.image %}
+                            <img src="{{ festival.image.url }}" alt="{{ festival.name }}">
+                        {% else %}
+                            <div class="image-placeholder"></div>
+                        {% endif %}
+                        <p class="text-info">{{ festival.days_left }}</p>
+                    </div>
+                    <div class="text-content">
+                        <h5 class="post-title">{{ festival.name }}</h5>
                         <p><strong>장소:</strong> {{ festival.location }}</p>
                         <p><strong>기간:</strong> {{ festival.start_date }} ~ {{ festival.end_date }}</p>
-                        
-                        <p class="text-info"><strong>디데이:</strong> {{ festival.days_left }}</p>
-
-                        <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
-                            찜 취소
-                        </button>
+                        <div class="like-section">
+                            <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
+                                <img src="{% static 'images/북마크-채워짐.png' %}"> 
+                            </button>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
         <hr>
     {% endif %}
 
     <!-- 전체 찜한 축제 -->
-    <h3>전체</h3>
     {% if all_festivals %}
-        <div class="row mt-4">
-            {% for festival in all_festivals %}
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
-                    {% if festival.image %}
-                        <img src="{{ festival.image.url }}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
-                    {% else %}
-                        <img src="{% static 'images/default_festival.jpg' %}" class="card-img-top" alt="{{ festival.name }}" style="height: 200px; object-fit: cover;">
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <h5 class="card-title">{{ festival.name }}</h5>
+        {% if upcoming_festivals %}
+            <span class="post-title">전체</span>
+        {% else %}
+            <span class="post-title">{{ title }}</span>
+        {% endif %}
+        <div class="main-grid-container">
+            <div class="main-grid" id="all-slider">
+                {% for festival in all_festivals %}
+                <div class="grid-item" data-id="{{ festival.id }}">
+                    <div class="image-container">
+                        {% if festival.image %}
+                            <img src="{{ festival.image.url }}" alt="{{ festival.name }}">
+                        {% else %}
+                            <div class="image-placeholder"></div>
+                        {% endif %}
+                        <p class="text-info">{{ festival.days_left }}</p>
+                    </div>
+                    <div class="text-content">
+                        <h5 class="post-title">{{ festival.name }}</h5>
                         <p>{{ festival.description|truncatewords:20 }}</p>
                         <p><strong>장소:</strong> {{ festival.location }}</p>
                         <p><strong>기간:</strong> {{ festival.start_date }} ~ {{ festival.end_date }}</p>
-                        
-                        <p class="text-info"><strong>디데이:</strong> {{ festival.days_left }}</p>
-
-                        <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
-                            찜 취소
-                        </button>
+                        <div class="like-section">
+                            <button class="btn btn-danger" data-url="{% url 'places:toggle_bookmark' festival.id %}" onclick="toggleBookmark(this)">
+                                <img src="{% static 'images/북마크-채워짐.png' %}"> 
+                            </button>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     {% else %}
         <p>현재 찜한 축제가 없습니다.</p>
     {% endif %}
 </div>
 
-<script>
-function toggleBookmark(button) {
-    const url = button.getAttribute('data-url');
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+<style>
+    .post-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: #508344;
+    }
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrftoken,
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (!data.is_bookmarked) {
-            button.closest('.col-md-4').remove();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
+    .main-grid-container {
+        position: relative;
+        overflow: hidden; /* 슬라이더 영역에서 넘치는 내용 숨기기 */
+    }
+
+    .main-grid {
+        display: flex; /* 가로로 배치 */
+        overflow-x: auto; /* 가로 스크롤 활성화 */
+        gap: 20px; /* 항목 간격 */
+        padding: 20px;
+        max-width: 100%; /* 전체 그리드 너비 */
+
+        /* 스크롤바 숨김 */
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+    .main-grid::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .main-grid-container {
+        max-width: calc(100% - 20px); /* 컨테이너 너비를 슬라이드 크기에 맞춤 */
+    }
+
+    .grid-item {
+        flex: 0 0 calc(33.333% - 20px); /* 최대 3개씩 나열 */
+        background-color: rgba(239, 236, 236, 0.551);
+        border-radius: 10px;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .grid-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .image-container {
+        position: relative;
+        height: 180px;
+        border-radius: 10px 10px 0 0;
+        overflow: hidden;
+    }
+
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-placeholder {
+        width: 100%;
+        height: 100%;
+        background-color: rgba(200, 200, 200, 0.3);
+    }
+
+    .text-info {
+        position: absolute;
+        top: 10px; /* 이미지 상단에 고정 */
+        right: 10px;
+        font-size: 30px;
+        font-weight: bold;
+        color: white !important;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+
+    .text-content {
+        padding: 15px;
+        text-align: left;
+    }
+
+    .text-content .post-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .like-section {
+        margin-top: 10px;
+        text-align: right;
+    }
+
+    .btn-danger {
+        background-color: unset !important;
+        border: none;
+        padding: 5px 10px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 5px;
+        color: white;
+    }
+    .like-section img {
+        width: 24px; /* 원하는 너비 설정 */
+        height: 24px; /* 원하는 높이 설정 */
+        object-fit: contain; /* 이미지 비율 유지 */
+    }
+
+</style>
+
+<script>
+    function toggleBookmark(button) {
+        const url = button.getAttribute('data-url');
+        const festivalId = button.closest('.grid-item').getAttribute('data-id'); // 게시글 ID
+        const gridItems = document.querySelectorAll(`.grid-item[data-id="${festivalId}"]`); // 모든 해당 게시글 요소
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken, // CSRF 토큰 포함
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.is_bookmarked === false) { // 찜 취소 성공
+                gridItems.forEach(gridItem => {
+                    gridItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease'; // 애니메이션 추가
+                    gridItem.style.opacity = 0; // 사라지는 효과
+                    gridItem.style.transform = 'scale(0.9)'; // 크기 줄이기
+
+                    setTimeout(() => {
+                        gridItem.remove(); // DOM에서 게시글 제거
+                    }, 300); // 애니메이션 후 삭제
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    const csrftoken = '{{ csrf_token }}'; // CSRF 토큰 설정
 </script>
 {% endblock %}
