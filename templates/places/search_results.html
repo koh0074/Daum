@@ -28,49 +28,25 @@
     <!-- 축제 검색 결과 -->
     {% if festivals %}
         <div class="d-flex justify-content-between align-items-center">
-            <h3>📅 축제</h3>
             <span class="post-count">총 {{ festivals|length }}건</span>
         </div>
         <div class="main-grid">
             {% for festival in festivals %}
             <div class="grid-item">
                 <div class="image-container">
-                    {% if festival.image %}
-                        <img src="{{ festival.image.url }}" alt="{{ festival.name }}">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
                     {% else %}
-                        <div class="image-placeholder">이미지 없음</div>
+                        <div class="image-placeholder"></div>
                     {% endif %}
                 </div>
                 <div class="text-content">
                     <!-- 축제 제목 -->
                     <h5>{{ festival.name }}</h5>
                     <!-- 작성자와 작성일 -->
-                    <p class="post-meta">
-                        작성자: {{ festival.author.username }} | 작성일: {{ festival.created_at|date:"Y-m-d H:i" }}
-                    </p>
                     <!-- 찜 여부 표시 -->
-                    {% if festival.id in user_bookmarks %}
-                        <p class="text-success">★ 내가 찜한 축제</p>
-                    {% else %}
-                        <p class="text-muted">☆ 찜하지 않음</p>
-                    {% endif %}
-                    <!-- 별점 표시 -->
-                    <p>별점: 
-                        {% for i in "123" %}
-                            <span class="{% if i <= festival.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                        {% endfor %}
-                    </p>
                     <!-- 축제 설명 -->
                     <p>{{ festival.description|truncatewords:20 }}</p>
-                </div>
-
-                <!-- 북마크 버튼 -->
-                <div class="like-section">
-                    <img src="{% static 'images/북마크-비워짐.png' %}" 
-                        class="like-btn" 
-                        alt="찜하기" 
-                        data-id="{{ festival.id }}"
-                        data-bookmarked="{% if festival.id in user_bookmarks %}true{% else %}false{% endif %}">
                 </div>
             </div>
             {% endfor %}
@@ -81,167 +57,136 @@
 
 
 
-    <!-- 여행지 검색 결과 -->
-{% if destinations %}
-<div class="d-flex justify-content-between align-items-center">
-    <h3>🗺️ 여행지</h3>
-    <span class="post-count">총 {{ destinations|length }}건</span>
-</div>
-<div class="main-grid">
-    {% for destination in destinations %}
-    <div class="grid-item">
-        <div class="image-container">
-            {% if destination.image %}
-                <img src="{{ destination.image.url }}" alt="{{ destination.name }}">
-            {% else %}
-                <div class="image-placeholder">이미지 없음</div>
-            {% endif %}
-        </div>
-        <div class="text-content">
-            <!-- 여행지 제목 -->
-            <h5>{{ destination.name }}</h5>
-            <!-- 작성자와 작성일 -->
-            <p class="post-meta">
-                작성자: {{ destination.author.username }} | 작성일: {{ destination.created_at|date:"Y-m-d H:i" }}
-            </p>
-            <!-- 찜 여부 표시 -->
-            {% if destination.id in user_bookmarks %}
-                <p class="text-success">★ 내가 찜한 여행지</p>
-            {% else %}
-                <p class="text-muted">☆ 찜하지 않음</p>
-            {% endif %}
-            <!-- 별점 표시 -->
-            <p>별점: 
-                {% for i in "123" %}
-                    <span class="{% if i <= destination.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                {% endfor %}
-            </p>
-            <!-- 여행지 설명 -->
-            <p>{{ destination.description|truncatewords:20 }}</p>
-        </div>
-
-        <!-- 북마크 버튼 -->
-        <div class="like-section">
-            <img src="{% static 'images/북마크-비워짐.png' %}" 
-                class="like-btn" 
-                alt="찜하기" 
-                data-id="{{ destination.id }}"
-                data-bookmarked="{% if destination.id in user_bookmarks %}true{% else %}false{% endif %}">
-        </div>
+        <!-- 여행지 검색 결과 -->
+    {% if destinations %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>🗺️ 여행지</h3>
+        <span class="post-count">총 {{ destinations|length }}건</span>
     </div>
-    {% endfor %}
-</div>
-<hr>
-{% endif %}
-
-
-
-    <!-- 남의 여행일지 검색 결과 -->
-{% if others_posts %}
-<div class="d-flex justify-content-between align-items-center">
-    <h3>📖 남의 여행일지</h3>
-    <span class="post-count">총 {{ others_posts|length }}건</span>
-</div>
-<div class="main-grid">
-    {% for post in others_posts %}
-    <div class="grid-item">
-        <div class="image-container">
-            {% if post.image %}
-                <img src="{{ post.image.url }}" alt="{{ post.title }}">
-            {% else %}
-                <div class="image-placeholder">이미지 없음</div>
-            {% endif %}
+    <div class="main-grid">
+        {% for destination in destinations %}
+        <div class="grid-item">
+            <div class="image-container">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% else %}
+                    <div class="image-placeholder"></div>
+                {% endif %}
+            </div>
+            <div class="text-content">
+                <!-- 여행지 제목 -->
+                <h5>{{ destination.name }}</h5>
+                <!-- 작성자와 작성일 -->
+                <p>{{ destination.description|truncatewords:20 }}</p>
+            </div>
         </div>
-        <div class="text-content">
-            <!-- 게시글 제목 -->
-            <h5>{{ post.title }}</h5>
-            <!-- 작성자와 작성일 -->
-            <p class="post-meta">
-                작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}
-            </p>
-            <!-- 찜 여부 표시 -->
-            {% if post.id in user_bookmarks %}
-                <p class="text-success">★ 내가 찜한 게시글</p>
-            {% else %}
-                <p class="text-muted">☆ 찜하지 않음</p>
-            {% endif %}
-            <!-- 별점 표시 -->
-            <p>별점: 
-                {% for i in "123" %}
-                    <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                {% endfor %}
-            </p>
-        </div>
-
-        <!-- 북마크 버튼 -->
-        <div class="like-section">
-            <img src="{% static 'images/북마크-비워짐.png' %}" 
-                class="like-btn" 
-                alt="찜하기" 
-                data-id="{{ post.id }}"
-                data-bookmarked="{% if post.id in user_bookmarks %}true{% else %}false{% endif %}">
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
-{% endif %}
+    <hr>
+    {% endif %}
 
 
-   <!-- 친구의 여행일지 검색 결과 -->
-{% if friends_posts %}
-<div class="d-flex justify-content-between align-items-center">
-    <h3>👥 친구의 여행일지</h3>
-    <span class="post-count">총 {{ friends_posts|length }}건</span>
-</div>
-<div class="main-grid">
-    {% for post in friends_posts %}
-    <div class="grid-item">
-        <div class="image-container">
-            {% if post.image %}
-                <img src="{{ post.image.url }}" alt="{{ post.title }}">
-            {% else %}
-                <div class="image-placeholder">이미지 없음</div>
-            {% endif %}
-        </div>
-        <div class="text-content">
-            <!-- 게시글 제목 -->
-            <h5>{{ post.title }}</h5>
-            <!-- 작성자 및 작성일 -->
-            <p class="post-meta">
-                작성자: {{ post.author.username }} | 작성일: {{ post.created_at|date:"Y-m-d H:i" }}
-            </p>
-            <!-- 찜 여부 표시 -->
-            {% if post.id in user_bookmarks %}
-                <p class="text-success">★ 내가 찜한 게시글</p>
-            {% else %}
-                <p class="text-muted">☆ 찜하지 않음</p>
-            {% endif %}
-            <!-- 별점 표시 -->
-            <p>별점: 
-                {% for i in "123" %}
-                    <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                {% endfor %}
-            </p>
-        </div>
 
-        <!-- 북마크 버튼 -->
-        <div class="like-section">
-            <img src="{% static 'images/북마크-비워짐.png' %}" 
-                 class="like-btn" 
-                 alt="찜하기" 
-                 data-id="{{ post.id }}"
-                 data-bookmarked="{% if post.id in user_bookmarks %}true{% else %}false{% endif %}">
-        </div>
+        <!-- 남의 여행일지 검색 결과 -->
+    {% if others_posts %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>📖 남의 여행일지</h3>
+        <span class="post-count">총 {{ others_posts|length }}건</span>
     </div>
-    {% endfor %}
-</div>
-{% endif %}
+    <div class="main-grid">
+        {% for post in others_posts %}
+        <div class="grid-item">
+            <div class="image-container">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% else %}
+                    <div class="image-placeholder"></div>
+                {% endif %}
+            </div>
+            <div class="text-content">
+                <!-- 게시글 제목 -->
+                <h5>{{ post.title }}</h5>
+                <!-- 작성자와 작성일 -->
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
 
+    <!-- 친구의 여행일지 검색 결과 -->
+    {% if friends_posts %}
+    <div class="d-flex justify-content-between align-items-center">
+        <h3>👥 친구의 여행일지</h3>
+        <span class="post-count">총 {{ friends_posts|length }}건</span>
+    </div>
+    <div class="main-grid">
+        {% for post in friends_posts %}
+        <div class="grid-item">
+            <div class="image-container">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% else %}
+                    <div class="image-placeholder"></div>
+                {% endif %}
+            </div>
+            <div class="text-content">
+                <!-- 게시글 제목 -->
+                <h5>{{ post.title }}</h5>
+                <!-- 작성자 및 작성일 -->
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
+
+
 
 <!--스타일-->
 <style>
+    .grid-item .image-container{
+        height:190px !important;
+    }
+    .grid-item{
+        height:340px;
+    }
+    .text-content{
+        padding:10px;
+    }
+    .post-meta{
+        margin:0 !important;
+    }
+    .text-muted{
+        margin:0 !important;
+    }
+
+    .image-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .image-container-inside {
+        display: block;
+    }
+    
+    .image-container img {
+        width: 100%;
+        height: auto;
+    }
+    
+    .profile-inside-eachstar {
+        font-size: 30px;
+    }
+    
+    .profile-inside-rating {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+    }
+
     /* 헤더 텍스트 스타일 */
     .header-container {
         display: flex;
@@ -404,7 +349,6 @@
         height: 100%;
         background-color: #d9d9d9;
         display: flex;
-        justify-content: center;
         align-items: center;
         color: #808080;
         font-size: 20px;
@@ -418,7 +362,7 @@
     /* 북마크 버튼 */
     .like-section {
         position: absolute;
-        bottom: 10px; /* 하단 위치 */
+        top: 10px; /* 하단 위치 */
         right: 10px; /* 우측 위치 */
         z-index: 10;  /* 다른 콘텐츠 위로 */
     }
@@ -449,10 +393,6 @@
     }
 
 
-    /* 배경 고정 */
-    body {
-        background-attachment: fixed;
-    }
 </style>
 
 {% endblock %}
