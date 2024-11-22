@@ -75,70 +75,63 @@
 
 <!-- JavaScript for interactivity -->
 <script>
-    // 전체공개 이미지 버튼튼
-    const images = [
-    "{% static 'images/공개-전체공개.png' %}",
-    "{% static 'images/공개-친구공개.png' %}",
-    "{% static 'images/공개-나만공개.png' %}"
-    ];
-    document.querySelector('#add-tag-btn').addEventListener('click', function () {
-    const newTag = document.querySelector('#new-tag').value.trim();
-    if (newTag) {
-        const selectedTagsInput = document.getElementById('selected-tags');
-        const currentTags = selectedTagsInput.value.split(',').filter(tag => tag.trim());
-        if (!currentTags.includes(newTag)) {
-            currentTags.push(newTag);
-            selectedTagsInput.value = currentTags.join(',');
-        }
-        // 새로운 태그를 UI에 추가
-        const tagButton = document.createElement('button');
-        tagButton.textContent = newTag;
-        tagButton.className = 'tag-button';
-        document.getElementById('tag-btn').appendChild(tagButton);
-    }
-    document.querySelector('#new-tag').value = ''; // 입력 필드 초기화
-});
-
-    let currentImageIndex = 0;
-
-    const accessButton = document.querySelector('.access-btn');
-
-
-    accessButton.addEventListener('click', () => {
-
-    currentImageIndex = (currentImageIndex + 1) % images.length;
-    accessButton.src = images[currentImageIndex];
+    document.addEventListener('DOMContentLoaded', function () {
+    // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
+    document.querySelector('.add-pbtn').addEventListener('click', function () {
+        document.getElementById('id_image_upload').click();
     });
+
+    // 파일이 선택되면 contenteditable 영역에 이미지 삽입 및 textarea에 파일 저장
+    document.getElementById('id_image_upload').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                // contenteditable 영역에 이미지 삽입
+                const editableText = document.getElementById('editable-text');
+                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto; margin-top: 10px;">`;
+                editableText.innerHTML += imgTag; // 이미지 추가
+
+                // hidden textarea에 이미지 파일 URL 저장
+                const hiddenTextarea = document.getElementById('id_content');
+                hiddenTextarea.value = editableText.innerHTML; // <textarea>에 콘텐츠 삽입
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 글자 스타일 버튼 동작
+    const editableText = document.getElementById('editable-text');
+
+    function applyStyle(command) {
+        // 포커스가 항상 contenteditable 영역에 있도록 설정
+        editableText.focus();
+        document.execCommand(command, false, null);
+    }
 
     // 글자 굵게 버튼
     document.getElementById('bold-btn').addEventListener('click', (event) => {
         event.preventDefault(); // 기본 동작 막기
-        document.execCommand('bold');
+        applyStyle('bold');
     });
 
     // 밑줄 버튼
     document.getElementById('underline-btn').addEventListener('click', (event) => {
         event.preventDefault(); // 기본 동작 막기
-        document.execCommand('underline');
+        applyStyle('underline');
     });
 
     // 가운데 정렬 버튼
     let isCentered = false; // 상태 추적
     document.getElementById('center-align-btn').addEventListener('click', (event) => {
         event.preventDefault(); // 기본 동작 막기
-        if (isCentered) {
-            document.execCommand('justifyLeft');
-        } else {
-            document.execCommand('justifyCenter');
-        }
+        applyStyle(isCentered ? 'justifyLeft' : 'justifyCenter');
         isCentered = !isCentered;
     });
 
-    // 스타일 고정: contenteditable 영역의 p 태그나 div 태그에 적용
-    const editableText = document.getElementById('editable-text');
+    // contenteditable의 변경 사항을 textarea로 동기화
     const hiddenTextarea = document.getElementById('id_content');
 
-    // HTML을 안전하게 정리하는 함수
     function sanitizeHTML(html) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
@@ -156,13 +149,11 @@
         return sanitizedHTML;
     }
 
-    // contenteditable의 변경 사항을 textarea로 동기화
     editableText.addEventListener('input', function () {
         hiddenTextarea.value = sanitizeHTML(editableText.innerHTML);
     });
 
-
-    // 별점 
+    // 별점
     const stars = document.querySelectorAll('#star-rating .star');
     const ratingInput = document.getElementById('id_rating');
 
@@ -173,7 +164,7 @@
     }
 
     stars.forEach((star, index) => {
-        star.addEventListener('click', function() {
+        star.addEventListener('click', function () {
             const selectedRating = index + 1;
             // 선택한 별을 다시 클릭하면 해제
             if (parseInt(ratingInput.value) === selectedRating) {
@@ -185,50 +176,40 @@
             }
         });
     });
-    // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
-    document.querySelector('.add-pbtn').addEventListener('click', function() {
-        document.getElementById('id_image_upload').click();
-    });
 
-    // 파일이 선택되면 contenteditable 영역에 이미지 삽입 및 textarea에 파일 저장
-    document.getElementById('id_image_upload').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                // contenteditable 영역에 이미지 삽입
-                const editableText = document.getElementById('editable-text');
-                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto; margin-top: 10px;">`;
-                editableText.innerHTML += imgTag; // 이미지 추가
-                
-                // hidden textarea에 이미지 파일 URL 저장
-                const imageInput = document.getElementById('id_content');
-                imageInput.value = editableText.innerHTML; // <textarea>에 콘텐츠 삽입
-            };
-            reader.readAsDataURL(file);
+    // 제목 글자 수 제한
+    const titleInput = document.getElementById('id_title');
+    titleInput.addEventListener('keyup', function () {
+        const titleLength = titleInput.value.length;
+
+        if (titleLength > 15) {
+            alert('제목은 15자 이하로 작성해주세요.');
+            // 초과된 글자 자르기
+            titleInput.value = titleInput.value.slice(0, 15);
         }
     });
 
+    // 썸네일 이미지 미리보기
+    document.getElementById('thumbnail-input').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('thumbnail-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('유효한 이미지 파일을 선택하세요.');
+        }
+    });
 
-        // 글자 스타일 적용 시 이미지가 사라지지 않도록 보호
-        document.getElementById('editable-text').addEventListener('input', function(event) {
-            const editableText = document.getElementById('editable-text');
-            const imageInput = document.getElementById('id_content');
-            imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
-        });
-        document.getElementById('thumbnail-input').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('thumbnail-preview').src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert('유효한 이미지 파일을 선택하세요.');
-            }
-        });
-
+    // 글자 스타일 적용 시 이미지가 사라지지 않도록 보호
+    editableText.addEventListener('input', function () {
+        const editableText = document.getElementById('editable-text');
+        const imageInput = document.getElementById('id_content');
+        imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
+    });
+});
 
 </script>
 
