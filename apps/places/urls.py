@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings  # settings 가져오
+from django.conf.urls.static import static
 
 app_name = 'places'
 
@@ -12,3 +14,5 @@ urlpatterns = [
     path('search/', views.search_results, name='search_results'),
     path('load_tab/<str:tab_name>/', views.load_tab, name='load_tab'),
 ]
+if settings.DEBUG:  # 개발 환경에서만 동작
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

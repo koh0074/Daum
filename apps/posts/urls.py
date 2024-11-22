@@ -2,7 +2,8 @@ from django.urls import path
 from .views import main, post_list, post_create, post_update, post_delete
 from . import views
 from .views import main, post_list, post_create, post_update, post_delete, save_draft
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 app_name = 'posts'
 
@@ -21,3 +22,7 @@ urlpatterns = [
     path('friends/', views.friends_posts, name='friends_posts'),
     path('save-draft/', views.save_draft, name='save_draft'),  # 이 부분 확인
 ]
+
+# 개발 환경에서만 미디어 파일 서빙
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

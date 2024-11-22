@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings  # settings 가져오
+from django.conf.urls.static import static
 
 app_name = "accounts"
 
@@ -17,3 +19,5 @@ urlpatterns = [
     path('decline_request/<int:request_id>/', views.decline_friend_request, name='decline_friend_request'),
     path('get_friend_requests/', views.get_friend_requests, name='get_friend_requests'),  # 이 부분 추가
 ]
+if settings.DEBUG:  # 개발 환경에서만 동작
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
