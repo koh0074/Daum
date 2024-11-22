@@ -97,7 +97,7 @@ def logout(request):
 def friend_profile(request, username):
     """특정 사용자의 프로필 페이지"""
     friend = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=friend)
+    posts = Post.objects.filter(author=friend).order_by('-created_at')  # 최신순 정렬 추가
 
     # 현재 로그인한 사용자가 이 친구와 친구인지 확인
     is_friend = FriendRequest.objects.filter(

@@ -100,13 +100,13 @@
         <div class="post-grid" id="post-grid-imshi">
             <!-- 임시 저장된 글 내용들이 여기에 동적으로 삽입됩니다. -->
             {% for post in draft_posts %}
-                <div class="post-card grid-item">
+            <div class="post-card grid-item">
                     <!-- 이미지가 있는 경우 출력 -->
                     <div class="image-container">
                         {% if post.thumbnail_image %}
                             <img src="{{ post.thumbnail_image.url }}" alt="썸네일">
                         {% else %}
-                            <img src="{% static 'images/d-임시저장.png' %}" alt="이미지 없음">
+                            <img src="{% static 'images/임시저장-수정.png' %}" alt="이미지 없음">
                         {% endif %}
 
                         <!-- 별점 표시 -->
@@ -115,21 +115,30 @@
                                 <span class="profile-inside-eachstar {% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
                             {% endfor %}
                         </p>
-
                     </div>                
-                    <h3 class="profile-inside-h3">{{ post.title }}</h3>
-                    <p class="no-bmargin">위치: {{ post.location|default:"위치 정보 없음" }}</p>
-                    <p class="no-bmargin">임시 저장 날짜: {{ post.updated_at|date:"Y년 m월 d일 H:i" }}</p>
-    
+                    <div class="post-info">
+                        <div class="left-info">
+                            <h3 class="profile-inside-h3">{{ post.title }}</h3>
+                            <p class="no-bmargin">{{ post.location|default:"위치 정보 없음" }}</p>
+                        </div>
+                        <div class="right-info">
+                            <div class="calendar-image">
+                                <!-- 캘린더 이미지 추가 -->
+                                <img src="{% static 'images/달력.png' %}" alt="Calendar">
+                            </div>
+                            <p class="post-date">{{ post.created_at|date:"Y/m/d" }}</p>
+                        </div>
+                    </div>
 
-
-                    <!-- 수정 버튼 -->
-                    <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary editedit">게시</a>
-                    <!-- 삭제 버튼 -->
-                    <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger dldl" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
-                    </form>
+                    {% if post.author == user %}
+                    <div class="buttons">
+                        <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary editedit">수정</a>
+                        <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger dldl" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
@@ -162,17 +171,24 @@
                                 {% endfor %}
                             </p>                        
                         </div>
-                        <h3 class="profile-inside-h3"><a href="{% url 'posts:post_detail' post.pk %}" class="text-decoration-none h-pm-url">
-                            {{ post.title }}
-                        </a></h3>
-                        <p class="no-bmargin">위치: {{ post.location|default:"위치 정보 없음" }}</p>
-                        <p class="no-bmargin">작성 날짜: {{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
-        
 
+                        <div class="post-info">
+                            <div class="left-info">
+                                <h3 class="profile-inside-h3">{{ post.title }}</h3>
+                                <p class="no-bmargin">{{ post.location|default:"위치 정보 없음" }}</p>
+                            </div>
+                            <div class="right-info">
+                                <div class="calendar-image">
+                                    <!-- 캘린더 이미지 추가 -->
+                                    <img src="{% static 'images/달력.png' %}" alt="Calendar" >
+                                </div>
+                                <p class="post-date">{{ post.created_at|date:"Y/m/d" }}</p>
+                            </div>
+                        </div>
         
                         <!-- 게시글 수정 및 삭제 버튼 -->
                         {% if post.author == user %}
-                            <div class="">
+                            <div class="buttons">
                                 <a href="{% url 'posts:post_update' post.pk %}" class="btn btn-sm btn-outline-primary editedit">수정</a>
                                 <form method="post" action="{% url 'posts:post_delete' post.pk %}" style="display:inline;">
                                     {% csrf_token %}
@@ -774,6 +790,70 @@
         justify-content: flex-end; /* 오른쪽 정렬 */
         margin: 10px 0 20px 0; /* 필요시 여백 추가 */
     }
+     /*여기서부터 달력을 위한 수정*//
+     .post-card {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        background: linear-gradient(to bottom, #fff, #E5E4E4);
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .post-info {
+        display: flex;
+        justify-content: space-between; /* 왼쪽/오른쪽 배치 */
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .left-info {
+        width:80%;
+        pdding-right:10px;
+        flex: 1;
+    }
+    
+    .right-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 오른쪽 정렬 */
+        justify-content: space-between;
+        width:20%;
+    }
+    
+    .calendar-image >img {
+        margin-bottom: 5px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .post-date {
+        font-size: 12px;
+        color: #508344;
+        font-weight:bold;
+    }
+    p{
+        margin:0 !important;
+    }
+    .profile-inside-h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 9px;
+        margin-bottom: 7px;
+        white-space: nowrap; /* 한 줄로 텍스트 표시 */
+        overflow: hidden; /* 넘치는 부분 숨기기 */
+        text-overflow: ellipsis; /* 넘치는 부분에 '...' 추가 */
+    }
+
+    .no-bmargin {
+        margin: 1px;
+    }
+
 
 </style>
 {% endblock content %}

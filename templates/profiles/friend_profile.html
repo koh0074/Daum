@@ -70,24 +70,35 @@
                             {% if post.thumbnail_image %}
                                 <img src="{{ post.thumbnail_image.url }}" alt="{{ post.title }}">
                             {% else %}
-                                <img src="{% static 'images/no-thumbnail.png' %}" alt="이미지 없음">
+                                <img src="{% static 'images/임시저장-수정.png' %}" alt="이미지 없음">
                             {% endif %}
-
-
-                            <!-- 별점 표시 -->
+        
                             <p class="profile-inside-rating">
                                 {% for i in "123" %}
                                     <span class="profile-inside-eachstar {% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
                                 {% endfor %}
-                            </p>                        
-                        </div>                    
-                        <h3 class="profile-inside-h3">
-                            <a id="fpost-inside-title" href="{% url 'posts:post_detail' post.id %}">
-                                {{ post.title }}
-                            </a>
-                        </h3>
-                        <p class="no-bmargin" >{{ post.location }}</p>
-                        <p class="no-bmargin">{{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+                            </p>
+                        </div>
+        
+                        <div class="post-info">
+                            <div class="left-info">
+                                <h3 class="profile-inside-h3">
+                                    <a id="fpost-inside-title" href="{% url 'posts:post_detail' post.id %}">
+                                        {{ post.title }}
+                                    </a>
+                                </h3>
+                                <p class="no-bmargin">{{ post.location }}</p>
+                            </div>
+        
+                            <div class="right-info">
+                                <div class="calendar-image">
+                                    <!-- 캘린더 이미지 추가 -->
+                                    <img src="{% static 'images/달력.png' %}" alt="Calendar">
+                                </div>
+                                <p class="post-date">{{ post.created_at|date:"Y/m/d" }}</p>
+                            </div>
+                        </div>
+        
                     </div>
                 {% endfor %}
             {% else %}
@@ -509,5 +520,79 @@ document.addEventListener('DOMContentLoaded', function () {
         top:35%;
         right:40%;
     }
+    /*여기서부터 달력을 위한 수정*/
+    .post-card {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        background: #fff;
+        height: 310px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        width: 100%;
+    }
+    
+    .post-info {
+        display: flex;
+        justify-content: space-between; /* 왼쪽/오른쪽 배치 */
+        align-items: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    .left-info {
+        width: 75%;  /* 왼쪽 정보 영역을 75%로 설정 */
+        padding-right: 10px;
+        flex: 1;
+    }
+    
+    .right-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 오른쪽 정렬 */
+        justify-content: flex-start; /* 상단 정렬 */
+        width: 25%; /* 오른쪽 정보 영역을 25%로 설정 */
+    }
+    
+    .calendar-image > img {
+        margin-bottom: 5px;
+        width: 35px;
+        height: 35px;
+    }
+    
+    .post-date {
+        font-size: 12px;
+        color: #508344;
+        font-weight: bold;
+    }
+    
+    p {
+        margin: 0 !important; /* p 태그의 기본 여백 제거 */
+    }
+    
+    .profile-inside-h3 {
+        font-size: 18px;
+        margin-top: 9px;
+        margin-bottom: 7px;
+        white-space: nowrap; /* 한 줄로 텍스트 표시 */
+        overflow: hidden; /* 넘치는 부분 숨기기 */
+        text-overflow: ellipsis; /* 넘치는 부분에 '...' 추가 */
+    }
+    
+    .no-bmargin {
+        margin: 1px;
+    }
+    
+    /* 제목 영역이 너무 길어지면 숨기기 위한 처리 */
+    .profile-inside-h3 a {
+        display: block;
+        width: 100%; /* 부모 요소의 너비에 맞게 */
+        text-overflow: ellipsis; /* 넘치는 텍스트 '...'으로 처리 */
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    
 </style>
 {% endblock content %}
