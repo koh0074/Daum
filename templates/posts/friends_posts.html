@@ -11,17 +11,17 @@
 
     <!-- 메인 그리드 -->
     <div class="main-grid-container">
-        <button class="h-arrow-button left-arrow" onclick="scrollGrid(-1)">←</button>
+        <button class="h-arrow-button left-arrow" onclick="scrollGrid(-1)">◀</button>
         <div class="main-grid">
             {% if posts %}
                 {% for post in posts %}
                 <div class="grid-item">
                     <!-- 이미지가 있는 경우 출력 -->
                     <div class="image-container">
-                        {% if post.image %}
-                            <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                        {% if post.thumbnail_image %}
+                            <img src="{{ post.thumbnail_image.url }}" alt="{{ post.title }}">
                         {% else %}
-                            <div class="image-placeholder"></div>
+                            <img src="{% static 'images/no-thumbnail.png' %}" alt="이미지 없음">
                         {% endif %}
                     </div>
 
@@ -59,7 +59,7 @@
                 <p>친구의 게시글이 없습니다.</p>
             {% endif %}
         </div>
-        <button class="h-arrow-button right-arrow" onclick="scrollGrid(1)">→</button>
+        <button class="h-arrow-button right-arrow" onclick="scrollGrid(1)">▶</button>
     </div>
 
     <!-- 슬라이드 카운트 표시 -->
@@ -278,7 +278,7 @@
 
     .grid-item .image-container img {
         width: 100%;
-        height: 100%;
+        height: 180px;
         object-fit: cover;
     }
 
@@ -346,7 +346,7 @@
     .arrow-btns button {
         background-color: transparent;
         border: none;
-        font-size: 30px;
+        font-size: 1.5rem;
         cursor: pointer;
     }
 
@@ -361,19 +361,27 @@
     top: 50%;
     left: -40px; /* 왼쪽 끝 */
     transform: translateY(-50%); /* 세로 중앙 정렬 */
-    font-size: 30px;
+    color: #508344 !important;
     cursor: pointer;
+    font-size: 1.5rem;
 }
-
+.left-arrow:hover{
+    background-color: #E2F5D0 !important;
+}
 /* 오른쪽 화살표 */
 .right-arrow {
+    color: #508344 !important;
     position: absolute;
     top: 50%;
     right: -40px; /* 오른쪽 끝 */
     transform: translateY(-50%); /* 세로 중앙 정렬 */
-    font-size: 30px;
     cursor: pointer;
+    font-size: 1.5rem;
 }
+.right-arrow:hover{
+    background-color: #E2F5D0 !important;
+}
+
 
 /* 슬라이드 카운트 표시 */
 .slide-count-container {

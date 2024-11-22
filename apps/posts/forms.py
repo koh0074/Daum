@@ -13,10 +13,15 @@ class PostForm(forms.ModelForm):
         widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
         label="이미지 업로드"
     )
+    thumbnail_image = forms.ImageField(  # 대표 이미지 필드 추가
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        label="대표 이미지"
+    )
 
     class Meta:
         model = Post
-        fields = ['title', 'content', 'location', 'rating', 'tags', 'image', 'is_draft']
+        fields = ['title', 'content', 'location', 'rating', 'tags', 'image','thumbnail_image', 'is_draft']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control'}),

@@ -1,9 +1,134 @@
-{% extends 'base.html' %}
-
+{% load static %}
 {% block content %}
-<form method="POST" action="">
-    {% csrf_token %}
-    {{ form }}
-    <button>Login</button>
-</form>
-{% endblock content %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행다움 로그인</title>
+    <style>
+        /* 기본 스타일 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #c2eab0, #FBFDF7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        body {
+            font-family: '학교안심여행체', sans-serif;
+            color: #4f4f4f;
+            padding: 70px 0 50px;
+        }
+
+        .center-image {
+            margin-top: 50px;
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #508344;
+            text-align: left;
+            padding-left: 7px;
+        }
+
+        input {
+            width: 400px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #508344;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 300px;
+            padding: 12px;
+            background-color: #508344;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #3b873e;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px 20px;
+            background: transparent;
+            color: gray;
+            font-size: 10px;
+            text-align: right;
+            box-sizing: border-box;
+            z-index: 5;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 100px;
+            position: relative;
+        }
+
+        .form-container div {
+            margin-bottom: 10px;
+        }
+
+        /* 부유하는 이미지 설정 (스타일 재활용) */
+        .floating-images {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .floating-images img {
+            position: absolute;
+            animation: floatAnimation 6s ease-in-out infinite;
+        }
+
+        @keyframes floatAnimation {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 로고 이미지 -->
+    <a href="{% url 'posts:main' %}"><img src="{% static 'images/여행다움_로고.png' %}" alt="여행다움 로고" class="center-image" width="250" height="70"></a>
+
+    <!-- 로그인 폼 -->
+    <div class="form-container">
+        <form method="POST" action="">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit">로그인</button>
+        </form>
+    </div>
+</body>
+</html>
+{% endblock %}

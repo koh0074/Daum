@@ -28,7 +28,7 @@ def login(request):
         if form.is_valid():
             user = form.get_user()
             auth.login(request, user)
-            return redirect('accounts:user')
+            return redirect('posts:main')
         else:
             context = {
                 'form':form,

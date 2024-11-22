@@ -2,82 +2,105 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="profile-header d-flex align-items-center">
-        <img src="{{ friend.profile.image.url }}" class="rounded-circle profile-img me-3" alt="프로필 사진">
-        <h2>
-            {% if friend.first_name %}
-                {{ friend.first_name }}
-            {% else %}
-                {{ friend.username }}
-            {% endif %}의 여행일기
-        </h2>
-        
-        <!-- 친구 추가/삭제 버튼 -->
-        {% if is_friend %}
-            <button id="friendButton" class="btn btn-danger ms-4">친구 삭제</button>
-        {% else %}
-            <button id="friendButton" class="btn btn-success ms-4">친구 추가</button>
-        {% endif %}
-    </div>
+<div class="container main-content">
+    <div class="profile-box">
+        <img src="{{ friend.profile.image.url }}" class="profile-img" alt="프로필 사진">
+        <div class="profile-info">
+            <div class="profile-name">
+                <p>
+                    {% if friend.first_name %}
+                        {{ friend.first_name }}
+                    {% else %}
+                        {{ friend.username }}
+                    {% endif %}의 여행일기
+                </p>
+                <div class="position-relative ffff">
+                    <!-- 친구 추가/삭제 버튼 -->
+                    {% if is_friend %}
+                        <button id="friendButton" class="notmyfriend">
+                            <img src="{% static 'images/myfriend.png' %}">
+                        </button>
+                    {% else %}
+                        <button id="friendButton" class="myfriend">
+                            <img src="{% static 'images/notmyfriend.png' %}">
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
 
-    <!-- 친구 수 및 드롭다운 목록 -->
-    <div class="friends-dropdown mt-4 position-relative">
-        <button class="btn btn-outline-info">
-            친구 {{ friends_count }}명
-        </button>
-        <div class="friends-list shadow p-3 bg-light rounded">
-            {% if friends_list %}
-                <ul class="list-unstyled">
-                    {% for friend in friends_list %}
-                    <li>
-                        <a href="{% url 'profiles:friend_profile' friend.username %}">
-                            {% if friend.first_name %}
-                                {{ friend.first_name }} (@{{ friend.username }})
-                            {% else %}
-                                {{ friend.username }}
-                            {% endif %}
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>아직 친구가 없습니다.</p>
-            {% endif %}
-        </div>
+            <div class="profile-btn">
+                <div class="profile-btn friends-dropdown">
+                    <button class="showfriends">
+                        친구 {{ friends_count }}명
+                    </button>
+                    <div class="friends-list shadow p-3 bg-light rounded">
+                        {% if friends_list %}
+                            <ul class="list-unstyled">
+                                {% for friend in friends_list %}
+                                <li>
+                                    <a href="{% url 'profiles:friend_profile' friend.username %}" class="text-decoration-none">
+                                        {% if friend.first_name %}
+                                            {{ friend.first_name }} (@{{ friend.username }})
+                                        {% else %}
+                                            {{ friend.username }}
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <hr>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>아직 친구가 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>    
     </div>
 
     <!-- 친구의 게시글 목록 -->
-    <div class="post-list mt-4">
-        {% if posts %}
-            {% for post in posts %}
-                <div class="post-card mb-4">
-                    <h3>
-                        <a href="{% url 'posts:post_detail' post.id %}">
-                            {{ post.title }}
-                        </a>
-                    </h3>
-                    <p>{{ post.content|truncatewords:20 }}</p>
-                    <p>위치: {{ post.location }}</p>
-                    <!-- 작성 날짜 표시 -->
-                    <p>작성 날짜: {{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+    <div class="post-list-friends">
+        <button class="left-arrow" id="prev-btn" disabled>◀</button>
+        <div class="post-grid" id="post-grid">
+            {% if posts %}
+                {% for post in posts %}
+                    <div class="post-card grid-item">
+                        <!-- 이미지가 있는 경우 출력 -->
+                        <div class="image-container">
+                            {% if post.thumbnail_image %}
+                                <img src="{{ post.thumbnail_image.url }}" alt="{{ post.title }}">
+                            {% else %}
+                                <img src="{% static 'images/no-thumbnail.png' %}" alt="이미지 없음">
+                            {% endif %}
 
-                    <!-- 별점 표시 부분 수정 -->
-                    <p>별점: 
-                        {% for i in "123" %}
-                            <span class="{% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
-                        {% endfor %}
-                    </p>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>아직 작성된 게시글이 없습니다.</p>
-        {% endif %}
+
+                            <!-- 별점 표시 -->
+                            <p class="profile-inside-rating">
+                                {% for i in "123" %}
+                                    <span class="profile-inside-eachstar {% if i <= post.rating|stringformat:"i" %}text-warning{% else %}text-muted{% endif %}">★</span>
+                                {% endfor %}
+                            </p>                        
+                        </div>                    
+                        <h3 class="profile-inside-h3">
+                            <a id="fpost-inside-title" href="{% url 'posts:post_detail' post.id %}">
+                                {{ post.title }}
+                            </a>
+                        </h3>
+                        <p class="no-bmargin" >{{ post.location }}</p>
+                        <p class="no-bmargin">{{ post.created_at|date:"Y년 m월 d일 H:i" }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p id="yet">아직 작성된 게시글이 없습니다.</p>
+            {% endif %}
+        </div>
+        <button class="right-arrow" id="next-btn">▶</button>   
     </div>
+    <span class="slide-count" id="slide-count">1/{{ totalPages }}</span> <!-- 슬라이드 카운트 -->
 </div>
 
 <script>
-document.getElementById('friendButton').addEventListener('click', function() {
+document.querySelector('#friendButton').addEventListener('click', function() {
     const isFriend = "{{ is_friend }}" === "True";
     const action = isFriend ? '친구를 삭제하시겠습니까?' : '친구 신청을 보내시겠습니까?';
     const url = isFriend 
@@ -107,38 +130,384 @@ document.getElementById('friendButton').addEventListener('click', function() {
         });
     }
 });
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const postsPerPage = 3; // 한 페이지에 표시할 게시글 수
+    const postGrid = document.getElementById('post-grid'); // 게시글 그리드
+    const prevButton = document.getElementById('prev-btn'); // 이전 버튼
+    const nextButton = document.getElementById('next-btn'); // 다음 버튼
+    const slideCount = document.getElementById('slide-count'); // 슬라이드 카운트 표시
+
+    let currentPage = 1; // 현재 페이지
+    const totalPosts = document.querySelectorAll('.post-card').length; // 총 게시글 수
+    const totalPages = Math.ceil(totalPosts / postsPerPage); // 총 페이지 수
+
+    // 게시글을 슬라이드로 이동시키는 함수
+    function updateGrid() {
+        const offset = (currentPage - 1) * postsPerPage; // 현재 페이지에 맞는 오프셋 계산
+        const posts = document.querySelectorAll('.post-card'); // 모든 게시글
+
+        // 게시글을 표시하거나 숨기기
+        posts.forEach((post, index) => {
+            if (index >= offset && index < offset + postsPerPage) {
+                post.style.display = 'block'; // 보이기
+            } else {
+                post.style.display = 'none'; // 숨기기
+            }
+        });
+
+        // 슬라이드 카운트 갱신
+        slideCount.textContent = `${currentPage}/${totalPages}`;
+
+        // 이전/다음 버튼 활성화 여부 결정
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
+    }
+
+    // 이전 버튼 클릭 시
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            updateGrid();
+        }
+    });
+
+    // 다음 버튼 클릭 시
+    nextButton.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            updateGrid();
+        }
+    });
+
+    // 초기 그리드 상태 업데이트
+    updateGrid();
+});
 </script>
-{% endblock content %}
+
 
 <style>
-    .profile-img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 50%;
+    /* 기본 설정 */
+    @font-face {
+      font-family: 'SchoolSafeFont';
+      src: url('{%static "fonts/HakgyoansimYeohaengR.ttf" %}') format('truetype');
     }
+    .container {
+        width: 90%;
+        height:100%;
+        max-width: 1400px;
+        margin-top: 10px;
+        padding: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .profile-box {
+        align-items: center;
+        display: flex;
+        justify-content:center;
+        margin-bottom:30px;
+    }
+    
+    .profile-img {
+        width: 190px;
+        height: 190px; /* 고정 크기 */
+        border-radius: 50%;
+        border: 5px solid #508344;
+        margin-right:50px;
+    
+    }
+    
+    .profile-info {
+        display: flex;
+        flex-direction: column;
+        margin-left:50px;
+    }
+
+    .profile-name{
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .profile-name > p {
+        font-family: 'SchoolSafeFont';
+        font-size: 53px;
+        color: #508344;
+        margin:0;
+    }
+     
+    .profile-btn {
+        margin-top: 5px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end; /* 모든 내용을 오른쪽으로 정렬 */
+        align-items: center; /* 수직 정렬 */
+        position: relative;
+    }
+    
+    .profile-btn button {
+        font-size: 20px;
+        background: none;
+        color: #508344;
+        font-weight: bold;
+        border: none;
+        margin: 5px 35px;
+    }
+    
+    .friends-list {
+        background: linear-gradient(to bottom, #508344, #759C6B);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 그림자 */
+        max-width: 300px;
+        color:white;
+        max-height: 170px; /* 드롭다운 최대 높이 설정 */
+        overflow-y: auto; /* 세로 스크롤 활성화 */
+        scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
+        -ms-overflow-style: none; /* IE 및 Edge에서 스크롤바 숨기기 */
+        z-index:2000;
+    }
+    
+    .profile-btn button:hover {
+        color: #3e6b2f;
+    }
+    
+    #friendButton img{
+        width:auto;
+        height:40px;
+        padding:0;
+    }
+    #friendButton {
+        backgroud:unset;
+        background:none;
+    }
+    /* 버튼에 hover 시 이미지에 transform 적용 */
+    #friendButton:hover img {
+        transform: scale(1.02); /* 크기 살짝 확대 */
+        transition: transform 0.2s ease; /* 부드러운 애니메이션 */
+    }
+
+    /* 이미지에 hover 시에도 적용 (추가 선택사항) */
+    #friendButton img:hover {
+        transform: scale(1.04);
+        transition: transform 0.2s ease;
+    }
+
+    .profile-btn {
+        right:0;
+    }
+    .profile-btn {
+        display: flex; /* 플렉스 박스 활성화 */
+        justify-content: flex-end; /* 오른쪽 정렬 */
+        align-items: center; /* 수직 중앙 정렬 */
+        position: relative; /* 드롭다운 위치 유지 */
+    }
+    
+    .friends-dropdown button{
+        margin-right: auto; /* 버튼을 오른쪽으로 밀어냄 */
+        margin-left:400px;
+    }
+    
     .friends-dropdown {
         position: relative;
         display: inline-block;
+        margin:0;
     }
     .friends-list {
-        display: none;
+        display: none !important;
         position: absolute;
         top: 100%;
-        left: 0;
+        right: 0;
         width: 200px;
         background-color: #f8f9fa;
         border-radius: 8px;
         padding: 15px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index:2000;
     }
     .friends-dropdown:hover .friends-list {
+        display: block !important;
+    }
+
+    .text-decoration-none {
+        font-family: 'SchoolSafeFont';
+        color: #FDF3D4;
+    }
+    #pptitle{
+        font-size:18px;
+        color: #FDF3D4;
+    }
+    #author, #datedate{
+        font-size:15px;
+        color: #757575;
+        margin:0;
+    }
+
+    .post-list-friends {
+        width: 100%;
+        justify-items: center; /* 그리드 아이템을 가로로 가운데 정렬 */
+        position: relative; /* 버튼을 그리드 영역 외부로 배치하기 위해 상대 배치 */
+    }
+    
+    h2 {
+        grid-area: title;
+        text-align: center;
+        color: #757575;
+        font-family: 'SchoolSafeFont';
+        font-size: 20px;
+        margin-top: 20px;
+    }
+    
+    .slide-count {
+        grid-area: slide-count;
+        justify-self: center; /* 가운데 정렬 */
+        align-self: center;
+        font-size: 1rem;
+        font-weight: bold;
+        margin-top: 20px;
+        color: #757575;
+    }
+    .left-arrow {
+        grid-area: left-arrow;
+        position: absolute; /* 절대 위치로 설정 */
+        top: 50%; /* 수직 가운데 */
+        left: -25px; /* 왼쪽 끝에 배치 */
+        transform: translateY(-50%); /* 정확히 가운데 정렬 */
+        color: #508344 !important;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .left-arrow:hover {
+        background-color: #E2F5D0 !important;
+    }
+    
+    .right-arrow {
+        grid-area: right-arrow;
+        position: absolute; /* 절대 위치로 설정 */
+        top: 50%; /* 수직 가운데 */
+        right: -25px; /* 오른쪽 끝에 배치 */
+        transform: translateY(-50%); /* 정확히 가운데 정렬 */
+        color: #508344 !important;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .right-arrow:hover {
+        background-color: #E2F5D0 !important;
+    }
+    .post-grid {
+        display: grid;
+        justify-content: center; /* 가운데 정렬 */
+        grid-template-columns: repeat(3, 350px); /* 3개의 고정 너비 열 */
+        gap: 20px;
+        width: 100%; /* 그리드의 너비를 100%로 설정 */
+        max-width: 1050px; /* 최대 너비를 지정하여 그리드가 화면에 맞게 조정되도록 설정 */
+    }
+    
+    .post-card {
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+        background: linear-gradient (to bottom, #fff,#E5E4E4);
+        width: 100%;
+        height: 300px;
+        justify-content: center;
+    }
+    
+    .grid-item img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
         display: block;
     }
-    .post-card {
-        background-color: #f9f9f9;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
+    .grid-item .image-placeholder {
+        width: 100%;
+        height: 90%;
+        background-color: rgba(200, 200, 200, 0.3);
+        border-radius: 8px;
+    }
+    
+    .grid-item {
+        justify-content: flex-start;
+    }
+    
+    .grid-item:hover {
+        transform: scale(1.01);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .grid-item .image-container {
+        width: 100%;
+        height: 65%;
+        overflow: hidden;
+        border-radius: 10px 10px 0 0;
+        background-color: #d9d9d9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .grid-item .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .grid-item .image-container.no-image {
+        background-color: #f5f5f5;
+    }
+    
+    .image-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .image-container-inside {
+        display: block;
+    }
+    
+    .image-container img {
+        width: 100%;
+        height: auto;
+    }
+    
+    .profile-inside-eachstar {
+        font-size: 30px;
+    }
+    
+    .profile-inside-rating {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        display: flex;
+        gap: 5px;
+    }
+    
+    a {
+        color:unset;
+        text-decoration:unset;
+    }
+    #fpost-inside-title {
+        font-family:'SchoolSafeFont';
+        font-size: 18px;
+        margin-top: 9px;
+        margin-bottom: 7px;
+    }
+    
+    .no-bmargin {
+        margin: 1px;
+    }
+    #yet{
+        position:fixed;
+        top:35%;
+        right:40%;
     }
 </style>
+{% endblock content %}

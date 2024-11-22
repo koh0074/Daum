@@ -68,6 +68,11 @@
             </div>
   
             <div class="right-buttons">
+                <!-- 대표 이미지 버튼 -->
+                <label class="thumbnail-button">
+                    <img src="{% static 'images/대표-수정.png' %}" id="thumbnail-preview" alt="대표 이미지 버튼" width="50">
+                    <input type="file" id="thumbnail-input" name="thumbnail_image" accept="image/*" style="display: none;">
+                </label>
                 <button class="add-lbtn">
                     <img src="{% static 'images/add_locate.png' %}" alt="위치 선택 버튼" width="50">
                 </button>
@@ -81,10 +86,7 @@
 
             
         </div>
-      
-
-
-
+    
 
         <!-- 태그 선택 부분 
         <div class="mb-3">
@@ -259,8 +261,19 @@
     });
     });
 
-
-
+    document.getElementById('thumbnail-input').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // 대표 이미지 버튼의 미리보기 업데이트
+                document.getElementById('thumbnail-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('유효한 이미지 파일을 선택하세요.');
+        }
+    });
     // 모달 열기/닫기 기능
     const modal = document.getElementById('tag-modal'); // ID가 'tag-modal'로 변경
     const addTagBtn = document.getElementById('add-tag-btn');
@@ -374,6 +387,19 @@
         const editableText = document.getElementById('editable-text');
         const imageInput = document.getElementById('id_content');
         imageInput.value = editableText.innerHTML; // 스타일 변경 시 textarea에 저장
+    });
+    // 제목 입력 필드
+    const titleInput = document.getElementById('id_title');
+
+    // 제목 입력 시 글자 수 확인
+    titleInput.addEventListener('keyup', function () {
+        const titleLength = titleInput.value.length;
+
+        if (titleLength > 15) {
+            alert('제목은 15자 이하로 작성해주세요.');
+            // 초과된 글자 자르기
+            titleInput.value = titleInput.value.slice(0, 15);
+        }
     });
 </script>
 
@@ -508,7 +534,27 @@
         width: 30px;
         height: auto;
     }
+    .thumbnail-button {
+        display: inline-block;
+        cursor: pointer;
+        border-radius: 50%;
+        overflow: hidden;
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
 
+    .thumbnail-button img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* 기본 파일 입력 스타일 숨김 */
+    #thumbnail-input {
+        display: none;
+    }
     .star {
         font-size: 2rem;
         cursor: pointer;
@@ -551,6 +597,8 @@
     .bottom-bar .right-buttons {
         display: flex;
         margin-left: auto;
+        justify-content: center;
+        align-items: center;
     }
     
     .bottom-bar button, .add-btn {

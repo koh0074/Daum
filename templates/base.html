@@ -28,18 +28,22 @@
                     <div class="dropdown-content search-box" style="left: 150%">
                         <form id="friend-search-form" method="post" action="{% url 'accounts:search_user' %}">
                             {% csrf_token %}
+                            <label for="friend-search-input" style="color: white; font-weight: bold;">아이디</label>
                             <input type="text" id="friend-search-input" name="user_id" placeholder="친구 검색" class="search-input" required>
                             <button type="submit" class="btn btn-primary mt-2">검색</button>
                         </form>
-        
+                
                         <!-- 검색 결과 표시 영역 -->
-                        <div id="search-result" class="mt-3"></div>
+                        <div id="search-result" class="mt-3">
+                            <div class="dropdown-menu friend-search-result" id="search-result-dropdown" style="display: none;"></div>
+                        </div>
                     </div>
                 </div>
+                
                 <a href="{% url 'places:bookmarked_festivals' %}" class="h-booktravel">찜한 여행</a>
             </div>
             <div class="h-logo">
-                <a href="{% url 'posts:main' %}" id="h-home" class="h-header-title"><img src="{% static 'images/여행다움 로고.png' %}" alt="logo" width="237.76" height="68"></a>
+                <a href="{% url 'posts:main' %}" id="h-home" class="h-header-title"><img src="{% static 'images/여행다움_로고.png' %}" alt="logo" width="237.76" height="68"></a>
             </div>
             <div class="icons">
                 <a href="{% url 'posts:post_create' %}">
@@ -67,7 +71,7 @@
                     </div>
                 {% else %}
                     <!-- 로그인 폼 표시 -->
-                    <span class="dropdown-button">로그인</span>
+                    <span class="dropdown-button login-button">로그인</span>
                     <div class="dropdown-content">
                         <form method="post" action="{% url 'accounts:login' %}">
                             {% csrf_token %}
@@ -81,9 +85,10 @@
                             <button type="submit" class="btn btn-primary">로그인</button>
                         </form>
                         <a href="{% url 'accounts:signup' %}">
-                            <button class="btn btn-secondary">회원가입</button>
+                            <button class="btn btn-secondary signup-button">회원가입</button>
                         </a>
                     </div>
+
                 {% endif %}
             </div>
             </div>
@@ -93,223 +98,413 @@
 </body>
 </html>
 
+<!--스크립트-->
+<script>
+    document.getElementById('friend-search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const input = document.getElementById('friend-search-input');
+        const resultDiv = document.getElementById('search-result');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value; // CSRF 토큰 추가
+
+        fetch("{% url 'accounts:search_user' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: new URLSearchParams({ user_id: input.value })
+        })
+        .then(response => response.json())
+        .then(data => {
+            resultDiv.innerHTML = '';
+            if (data.error) {
+                resultDiv.innerHTML = `<p class="text-danger">${data.error}</p>`;
+            } else {
+                let profileLink = `<a href="/profiles/${data.username}/" class="btn-profile">프로필 보기</a>`;
+
+                let friendRequestButton = data.is_friend ? '' : `
+                    <form method="post" action="/accounts/send_request/${data.user_id}/">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success mt-2">친구 요청 보내기</button>
+                    </form>
+                `;
+
+                resultDiv.innerHTML = `
+                    <p>< 아이디 : ${data.username} ></p>
+                    ${profileLink}
+                    ${friendRequestButton}
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            resultDiv.innerHTML = '<p class="text-danger">오류가 발생했습니다. 다시 시도해주세요.</p>';
+        });
+    });
+
+    function toggleRequests() {
+        const dropdown = document.getElementById('friend-requests-dropdown');
+        const isDropdownOpen = dropdown.style.display === 'block';
+        dropdown.style.display = isDropdownOpen ? 'none' : 'block';
+
+        if (!isDropdownOpen) {
+            loadFriendRequests();
+        }
+    }
+
+    function loadFriendRequests() {
+        fetch("{% url 'accounts:get_friend_requests' %}")
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('friend-requests-container');
+            container.innerHTML = '';
+
+            if (data.requests.length === 0) {
+                container.innerHTML = '<p>받은 친구 요청이 없습니다.</p>';
+            } else {
+                data.requests.forEach(req => {
+                    const requestElement = document.createElement('div');
+                    requestElement.classList.add('friend-request-item');
+                    requestElement.innerHTML = `
+                        <p>${req.from_user_nickname} (@${req.from_user})님의 친구 요청</p>
+                        <button class="btn btn-success" onclick="handleRequest(${req.id}, 'accept')">수락</button>
+                        <button class="btn btn-danger" onclick="handleRequest(${req.id}, 'decline')">거절</button>
+                    `;
+                    container.appendChild(requestElement);
+                });
+            }
+        });
+    }
+
+    function handleRequest(requestId, action) {
+        const url = action === 'accept'
+            ? "{% url 'accounts:accept_friend_request' 0 %}".replace('0', requestId)
+            : "{% url 'accounts:decline_friend_request' 0 %}".replace('0', requestId);
+
+        fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'accepted' || data.status === 'declined') {
+                loadFriendRequests();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFriendRequests();
+
+        // 드롭다운 외부 클릭 시 닫기
+        document.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('friend-requests-dropdown');
+            const bellIcon = document.getElementById('bell');
+
+            if (dropdown.style.display === 'block' && !dropdown.contains(event.target) && event.target !== bellIcon) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+
 <style>
     #pen {
-        transition: 0.2s ease-in-out; /* 부드러운 이미지 전환 */
+        transition: content 0.2s ease-in-out; /* content에 대한 부드러운 전환 */
+        margin-right: 13px; /* 오른쪽 간격 */
     }
-      
+
     #pen:hover {
         content: url({% static 'images/글쓰기-호버링.png' %}); /* 호버 시 이미지 변경 */
-      }
-      
+    }
+
     #bell {
-        transition: 0.2s ease-in-out; /* 부드러운 이미지 전환 */
-      }
-      
+        transition: content 0.2s ease-in-out; /* content에 대한 부드러운 전환 */
+    }
+
     #bell:hover {
         content: url({% static 'images/알림-호버링.png' %}); /* 호버 시 이미지 변경 */
-      }
-    .h-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: -8rem;
     }
-    .h-profile-border {         /* 원하는 높이로 설정 */
-      border: 3px solid #508344; /* 테두리 색과 두께 설정 */
-      border-radius: 50%;       /* 완전한 원 형태 */
-      overflow: hidden;         /* 원을 넘어가는 부분 제거 */
-  }
+
+    .h-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -8rem;
+    }
+
+    .h-profile-border {
+        border: 3px solid #508344; /* 테두리 색과 두께 설정 */
+        border-radius: 50%;       /* 완전한 원 형태 */
+        overflow: hidden;         /* 원을 넘어가는 부분 제거 */
+    }
+
     .h-profile-img {
         width: 80px;
         height: 80px;
         object-fit: cover;
     }
+
     .h-header-title {
-    font-size: 28px;
-    font-weight: bold;
-    color: #508344;
-    display: flex;
-    align-items: center;
-}
+        font-size: 28px;
+        font-weight: bold;
+        color: #508344;
+        display: flex;
+        align-items: center;
+    }
+
     .h-footer {
         text-align: right;
         font-size: 15px;
         color: #aaa;
-        bottom: 
     }
+
     /* 오른쪽 상단 드롭다운 스타일 */
-.dropdown {
-    position: relative; /* 부모 요소 기준으로 위치 설정 */
-}
+    .dropdown {
+        position: relative; /* 부모 요소 기준으로 위치 설정 */
+    }
 
-.dropdown-content {
-    display: none; /* 기본적으로 숨김 */
-    position: absolute; /* 부모 요소를 기준으로 위치 */
-    top: 100%; /* 버튼 바로 아래에 위치 */
-    left: -170%; /* 부모 요소의 중앙으로 이동 */
-    transform: translateX(-50%); /* 가운데 정렬 */
-    background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
-    border: 1px solid #ddd; /* 경계선 */
-    border-radius: 10px; /* 둥근 모서리 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
-    z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
-    padding: 20px; /* 내부 여백 */
-    min-width: 250px; /* 최소 너비 설정 */
-}
-.h-l-dropdown-content {
-    display: none; /* 기본적으로 숨김 */
-    position: absolute; /* 부모 요소를 기준으로 위치 */
-    top: 100%; /* 버튼 바로 아래에 위치 */
-    left: -170%; /* 부모 요소의 중앙으로 이동 */
-    transform: translateX(-50%); /* 가운데 정렬 */
-    background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
-    border: 1px solid #ddd; /* 경계선 */
-    border-radius: 10px; /* 둥근 모서리 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
-    z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
-    padding: 20px; /* 내부 여백 */
-    min-width: 250px; /* 최소 너비 설정 */
-}
+    .dropdown-content {
+        color: white;
+        font-weight: bold;
+        display: none; /* 기본적으로 숨김 */
+        position: absolute; /* 부모 요소를 기준으로 위치 */
+        top: 100%; /* 버튼 바로 아래에 위치 */
+        left: 0%; /* 부모 요소의 중앙으로 이동 */
+        transform: translateX(-50%); /* 가운데 정렬 */
+        background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+        border: 1px solid #ddd; /* 경계선 */
+        border-radius: 10px; /* 둥근 모서리 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+        z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+        padding: 20px; /* 내부 여백 */
+        min-width: 230px; /* 최소 너비 설정 */
+    }
 
-/* 드롭다운 버튼과 hover 효과 */
-.dropdown:hover .dropdown-content {
-    display: block; /* 호버 시 드롭다운 표시 */
-}
+    .dropdown-content a {
+        color: white; /* 기본 글씨 색을 흰색으로 설정 */
+        padding: 12px;
+        display: block;
+        text-decoration: none;
+    }
 
-.dropdown-button {
-    cursor: pointer;
-    display: inline-block;
-    font-size: 16px;
-    padding: 10px;
-    color: #508344;
-    font-weight: bold;
-    text-align: center;
-    border: none;
-    background: none;
-}
+    .dropdown-content a:hover {
+        color: #2a4d1f;
+    }
 
-/* 로그인 폼 스타일 */
-.dropdown-content form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+    /* 검색 버튼이 포커스를 받을 때 스타일 변경 */
+    .dropdown-content button:focus {
+        outline: none; /* 기본 포커스 스타일 제거 */
+        background-color: #508344; /* 포커스 상태에서 버튼 색상 설정 */
+        border: none; /* 포커스 상태에서 테두리 제거 */
+    }
 
-.dropdown-content input {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-}
 
-.dropdown-content button {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    color: white;
-    background-color: #508344;
-    cursor: pointer;
-}
+    .h-l-dropdown-content {
+        display: none; /* 기본적으로 숨김 */
+        position: absolute; /* 부모 요소를 기준으로 위치 */
+        top: 100%; /* 버튼 바로 아래에 위치 */
+        left: -170%; /* 부모 요소의 중앙으로 이동 */
+        transform: translateX(-50%); /* 가운데 정렬 */
+        background-color: rgba(80, 131, 68, 0.9); /* 반투명 배경색 */
+        border: 1px solid #ddd; /* 경계선 */
+        border-radius: 10px; /* 둥근 모서리 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+        z-index: 1000; /* 다른 요소 위에 표시되도록 설정 */
+        padding: 20px; /* 내부 여백 */
+        min-width: 250px; /* 최소 너비 설정 */
+    }
 
-.dropdown-content button:hover {
-    background-color: #3b873e; /* 어두운 초록색 */
-}
+    /* 드롭다운 버튼과 hover 효과 */
+    .dropdown:hover .dropdown-content {
+        display: block; /* 호버 시 드롭다운 표시 */
+    }
+
+    /* 로그인 버튼 스타일 */
+    .dropdown-button {
+        cursor: pointer;
+        display: inline-block;
+        font-size: 16px;
+        padding: 10px;
+        color: #508344;
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        background: none;
+    }
+
+    /* 로그인 폼 스타일 */
+    .dropdown-content form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dropdown-content input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .dropdown-content button {
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 14px;
+        color: white;
+        background-color: #508344;
+        cursor: pointer;
+    }
+
+    .dropdown-content button:hover {
+        background-color: #3b873e; /* 어두운 초록색 */
+    }
+
+    /* 로그인 버튼 스타일 */
+    .dropdown-content .login-button {
+        background-color: #508344; /* 초록색 배경 */
+        color: white;
+        padding: 10px 20px; /* 동일한 크기 */
+        border-radius: 5px;
+        width: 100%; /* 버튼 너비 100% */
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 로그인 버튼 호버 상태 */
+    .dropdown-content .login-button:hover {
+        background-color: #3b873e; /* 어두운 초록색 */
+    }
+
+    /* 회원가입 버튼 스타일 */
+    .signup-button {
+        cursor: pointer;
+        display: inline-block;
+        font-size: 16px;
+        padding: 10px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        border: none;
+        background-color: #2d8032; /* 진초록색 배경 */
+        width: 100%; /* 버튼 너비 100%로 설정 */
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 회원가입 버튼 호버 상태 */
+    .signup-button:hover {
+        background-color: #1e5d22; /* 어두운 진초록색 */
+    }
+
+    /* 로그인 폼 내 버튼의 배경색과 크기 수정 */
+    .dropdown-content .login-button {
+        background-color: #508344; /* 기본 초록색 배경 */
+        border-radius: 5px;
+        padding: 10px 20px; /* 여백을 조금 더 줌 */
+    }
+
+   /* 프로필 보기 버튼 스타일 */
+    .btn-profile {
+        background-color: #508344; /* 기본 초록색 */
+        color: white; /* 글씨 색은 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none; /* 링크 밑줄 제거 */
+        width: 100%; /* 버튼 너비를 100%로 설정 */
+    }
+
+    /* 호버 상태에서 배경색을 연한 그레이로 바꾸고 글씨 색은 흰색으로 유지 */
+    .btn-profile:hover {
+        background-color: #a8a8a8 !important; /* 호버 시 연한 그레이색 배경 */
+        color: white !important; /* 호버 시 글씨 색은 흰색으로 유지 */
+    }
+
+    /* 친구 요청 보내기 버튼 기본 스타일 */
+    .btn-success {
+        background-color: #508344; /* 기본 초록색 */
+        color: white; /* 글씨 색은 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        text-align: center;
+        text-decoration: none; /* 링크 밑줄 제거 */
+        border: none; /* 기본 테두리 제거 */
+    }
+
+    /* 친구 요청 보내기 버튼 호버 상태 */
+    .btn-success:hover {
+        background-color: #a8a8a8 !important; /* 호버 시 연한 회색 배경 */
+        color: white !important; /* 호버 시 글씨 색은 흰색으로 유지 */
+    }
+
+    
+    .friend-requests {
+        color: white; /* 드롭다운 리스트 텍스트 기본 색상 흰색 */
+    }
+
+    .friend-requests h4 {
+        color: white; /* 텍스트를 흰색으로 설정 */
+        font-weight: bold; /* 텍스트 강조 */
+        margin-bottom: 10px; /* 약간의 여백 추가 */
+        pointer-events: none; /* 호버 및 클릭 이벤트를 무시하도록 설정 */
+    }
+
+
+    .friend-requests p {
+        color: white; /* 드롭다운 내 모든 문단 텍스트를 흰색으로 */
+    }
+
+    .friend-requests button {
+        color: white; /* 버튼 텍스트 색상 */
+        background-color: #508344; /* 버튼 배경색 */
+        border: none; /* 테두리 제거 */
+        border-radius: 5px; /* 둥근 모서리 */
+        padding: 10px 20px; /* 버튼 여백 */
+        font-weight: bold; /* 글씨 굵기 설정 */
+    }
+
+    .friend-requests button:hover {
+        background-color: #a8a8a8; /* 버튼 호버 시 배경색 */
+    }
+
+    .friend-request-item p {
+        font-size: 14px; /* 글씨 크기를 14px로 줄임 */
+    }
+
+    /* 로그아웃 버튼 기본 색상 */
+    .dropdown-content .btn-secondary {
+        background-color: #508344; /* 진한 초록색 */
+        color: white; /* 텍스트 색상 흰색 */
+        padding: 10px 20px; /* 여백 설정 */
+        border-radius: 5px; /* 둥근 모서리 */
+        font-weight: bold;
+        width: 100%; /* 버튼 너비 100% */
+        text-align: center; /* 텍스트 중앙 정렬 */
+        border: none; /* 테두리 제거 */
+        cursor: pointer; /* 마우스 커서 변경 */
+        transition: background-color 0.3s ease; /* 배경색 변화에 부드러운 전환 추가 */
+    }
+
+    /* 로그아웃 버튼 호버 상태 */
+    .dropdown-content .btn-secondary:hover {
+        background-color: #a8a8a8; /* 회색 배경 */
+        color: white; /* 텍스트 색상 흰색 유지 */
+    }
+
+    #password {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 25px; /* 모서리를 더 둥글게 */
+        font-size: 14px;
+    }
+
+    
+
+
 </style>
 
-
-<script>
-document.getElementById('friend-search-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const input = document.getElementById('friend-search-input');
-    const resultDiv = document.getElementById('search-result');
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    fetch("{% url 'accounts:search_user' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken
-        },
-        body: new URLSearchParams({ user_id: input.value })
-    })
-    .then(response => response.json())
-    .then(data => {
-        resultDiv.innerHTML = '';
-        if (data.error) {
-            resultDiv.innerHTML = `<p class="text-danger">${data.error}</p>`;
-        } else {
-            // 검색된 사용자가 있을 경우 프로필 페이지 링크 추가
-            let profileLink = `<a href="/profiles/${data.username}/" class="btn btn-info">프로필 보기</a>`;
-            
-            // 이미 친구인 경우 추가 버튼을 표시하지 않음
-            let friendRequestButton = data.is_friend ? '' : `
-                <form method="post" action="/accounts/send_request/${data.user_id}/">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success mt-2">친구 요청 보내기</button>
-                </form>
-            `;
-
-            resultDiv.innerHTML = `
-                <p>아이디: ${data.username}</p>
-                ${profileLink}
-                ${friendRequestButton}
-            `;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        resultDiv.innerHTML = '<p class="text-danger">오류가 발생했습니다. 다시 시도해주세요.</p>';
-    });
-});
-
-    function toggleRequests() {
-    const dropdown = document.getElementById('friend-requests-dropdown');
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    loadFriendRequests(); // 친구 요청 목록 불러오기
-}
-
-function loadFriendRequests() {
-    fetch("{% url 'accounts:get_friend_requests' %}")
-    .then(response => response.json())
-    .then(data => {
-        const container = document.getElementById('friend-requests-container');
-        container.innerHTML = '';
-        
-        if (data.requests.length === 0) {
-            container.innerHTML = '<p>받은 친구 요청이 없습니다.</p>';
-        } else {
-            data.requests.forEach(req => {
-                const requestElement = document.createElement('div');
-                requestElement.classList.add('friend-request-item');
-                requestElement.innerHTML = `
-                    <p>${req.from_user_nickname} (@${req.from_user})님의 친구 요청</p>
-                    <button class="btn btn-success" onclick="handleRequest(${req.id}, 'accept')">수락</button>
-                    <button class="btn btn-danger" onclick="handleRequest(${req.id}, 'decline')">거절</button>
-                `;
-                container.appendChild(requestElement);
-            });
-        }
-    });
-}
-
-function handleRequest(requestId, action) {
-    const url = action === 'accept'
-        ? "{% url 'accounts:accept_friend_request' 0 %}".replace('0', requestId)
-        : "{% url 'accounts:decline_friend_request' 0 %}".replace('0', requestId);
-
-    fetch(url, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'accepted' || data.status === 'declined') {
-            loadFriendRequests(); // 친구 요청 목록 갱신
-        }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', loadFriendRequests);
-</script>
-    
-    

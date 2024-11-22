@@ -97,6 +97,10 @@ def post_create(request):
         if form.is_valid():
             post = form.save(commit=False)
             post.author = request.user
+
+            # [추가] 대표 이미지 설정
+            if 'thumbnail_image' in request.FILES:
+                post.thumbnail_image = request.FILES['thumbnail_image']
             post.save()
             if 'save_draft' in request.POST:
                 post.is_draft = True
@@ -142,6 +146,9 @@ def post_update(request, pk):
                 image = request.FILES['image']
                 post.content += f'\n<img src="{post.image.url}" alt="{post.title}" style="max-width:100%; height:auto;">'
             
+            # [추가] 대표 이미지가 수정된 경우 저장
+            if 'thumbnail_image' in request.FILES:
+                post.thumbnail_image = request.FILES['thumbnail_image']
             post.save()
             form.save_m2m()  # ManyToManyField 저장
             return redirect('profiles:profile_main')  # 수정 후 profile_main.html로 이동
