@@ -68,6 +68,11 @@
 
 <br>
 
+## Development Architecture☘️
+![image](https://github.com/user-attachments/assets/37d2d9d6-fc54-4c22-aa99-6451b2ca052e)
+
+<br>
+
 ## Project Structure☘️
 
 ```
