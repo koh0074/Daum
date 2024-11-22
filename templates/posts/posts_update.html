@@ -75,7 +75,6 @@
 
 <!-- JavaScript for interactivity -->
 <script>
-    
     // 전체공개 이미지 버튼튼
     const images = [
     "{% static 'images/공개-전체공개.png' %}",
@@ -186,8 +185,6 @@
             }
         });
     });
-
-
     // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
     document.querySelector('.add-pbtn').addEventListener('click', function() {
         document.getElementById('id_image_upload').click();
@@ -211,6 +208,7 @@
             reader.readAsDataURL(file);
         }
     });
+
 
         // 글자 스타일 적용 시 이미지가 사라지지 않도록 보호
         document.getElementById('editable-text').addEventListener('input', function(event) {

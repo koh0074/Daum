@@ -59,8 +59,14 @@
             <div class="dropdown">
                 
                 {% if user.is_authenticated %}
+                    <a href="{% url 'profiles:profile_main' %}"> 
+                        {% if user.profile.image %}
+                            <img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3 h-base-profileImg" alt="프로필 사진">
+                        {% else %}
+                            <img src="{% static 'images/profile_normal.png' %}" class="rounded-circle profile-img me-3 h-base-profileImg" alt="기본 프로필 사진">
+                        {% endif %}
+                    </a>
                     <!-- 로그인된 사용자의 정보 표시 -->
-                    <a href="{% url 'profiles:profile_main' %}"><img src="{{ user.profile.image.url }}" class="rounded-circle profile-img me-3 h-base-profileImg" alt="프로필 사진"></a>
                     <div class="dropdown-content">
                         <p>닉네임: {{ user.nickname }}</p>
                         <p>아이디: {{ user.username }}</p>

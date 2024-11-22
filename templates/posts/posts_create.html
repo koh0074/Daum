@@ -76,6 +76,7 @@
                 <button type="button" class="add-pbtn">
                     <img src="{% static 'images/add_pic.png' %}" alt="사진 선택 버튼" width="50">
                 </button>
+
             </div>
             
             <!-- 숨겨진 파일 입력 필드 -->
@@ -100,6 +101,29 @@
 </div>
 
 <script>
+     // '사진 선택 버튼' 클릭 시 파일 입력 필드 활성화
+     document.querySelector('.add-pbtn').addEventListener('click', function() {
+        document.getElementById('id_image_upload').click();
+    });
+
+    // 파일이 선택되면 contenteditable 영역에 이미지 삽입 및 textarea에 파일 저장
+    document.getElementById('id_image_upload').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // contenteditable 영역에 이미지 삽입
+                const editableText = document.getElementById('editable-text');
+                const imgTag = `<img src="${e.target.result}" alt="Uploaded Image" style="max-width:100%; height:auto; margin-top: 10px;">`;
+                editableText.innerHTML += imgTag; // 이미지 추가
+                
+                // hidden textarea에 이미지 파일 URL 저장
+                const imageInput = document.getElementById('id_content');
+                imageInput.value = editableText.innerHTML; // <textarea>에 콘텐츠 삽입
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     // 전체공개 이미지 버튼튼
     const images = [

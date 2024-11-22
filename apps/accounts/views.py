@@ -14,7 +14,7 @@ def signup(request):
             user.is_staff = True  # 필요 시 스태프 권한 추가
             user.save()
             auth.login(request, user)
-            return redirect('accounts:user')
+            return redirect('posts:main')
         else:
             # 폼이 유효하지 않을 경우 에러 메시지와 함께 다시 렌더링
             return render(request, 'accounts/signup.html', {'form': form, 'errors': form.errors})

@@ -20,8 +20,8 @@
 
         <div class="right">
             <div class="profile">
-                <a href="/profile/{{ post.author.username }}">
-                    <img src="{{ post.author.profile_image.url }}" alt="Profile Image">
+                <a href="/profile/{{ post.author.username }}" class="h-name" style="margin-top: 26px;">
+                    {{ post.author.nickname }}
                 </a>
             </div>
             <div class="ratedate">
@@ -163,7 +163,11 @@
 
 
 <style>
-    
+    .h-name {
+        text-decoration: none;
+        color: #508344;
+        font-weight: bold;
+    }
     .container {
         width: 90%;  /* 화면 너비에 맞춰 90% 비율로 설정 */
         height: 100%; 
