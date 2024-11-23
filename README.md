@@ -1,4 +1,4 @@
-<h2>🌱제 1회 디지털소프트웨어공학부 해커톤 Seed2Code🌱 <br>.
+<h2>🌱제 1회 디지털소프트웨어공학부 해커톤 Seed2Code🌱 <br>
 <img width="320" src="https://github.com/user-attachments/assets/68d8e2bb-2755-4331-aa85-f069216e427f">
 </h2>
 
